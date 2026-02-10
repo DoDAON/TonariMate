@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { ROUTES } from '@/lib/constants/routes';
 import { Header } from '@/components/layouts/Header';
 import { LogoutButton } from '@/components/features/auth/LogoutButton';
-import { ProfileCard } from '@/components/features/auth/ProfileCard';
+import { ProfileSection } from '@/components/features/auth/ProfileSection';
 import { EmptyState } from '@/components/shared/EmptyState';
 
 export default async function MyPage() {
@@ -33,7 +33,8 @@ export default async function MyPage() {
       <main className="container mx-auto px-4 py-8">
         {/* 프로필 섹션 */}
         <div className="mb-8">
-          <ProfileCard
+          <ProfileSection
+            userId={profile.id}
             name={profile.name}
             email={profile.email}
             avatarUrl={profile.avatar_url}
