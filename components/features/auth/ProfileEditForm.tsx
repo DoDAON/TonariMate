@@ -106,7 +106,7 @@ export function ProfileEditForm({
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="btn-brutal touch-target flex-1 bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-brutal touch-target flex-1 bg-muted text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
           >
             취소
           </button>
