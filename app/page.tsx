@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { ROUTES } from '@/lib/constants/routes';
+import { Logo } from '@/components/shared/Logo';
+import { Footer } from '@/components/layouts/Footer';
+import { EmptyState } from '@/components/shared/EmptyState';
 
 export default async function Home() {
   const supabase = await createClient();
@@ -11,10 +14,7 @@ export default async function Home() {
       <main className="container mx-auto px-4 py-16 md:py-24">
         {/* Hero Section */}
         <section className="flex flex-col items-center text-center gap-8 mb-16">
-          <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase">
-            Tonari
-            <span className="block text-muted-foreground">Mate</span>
-          </h1>
+          <Logo size="lg" />
           <p className="text-lg md:text-xl text-muted-foreground max-w-md">
             대학 조모임 활동 통합 관리
           </p>
@@ -49,30 +49,17 @@ export default async function Home() {
         <section className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold uppercase mb-6">내 모임</h2>
           {user ? (
-            <div className="card-brutal opacity-60">
-              <p className="text-muted-foreground text-sm">
-                아직 참여한 모임이 없습니다.
-              </p>
-              <p className="text-muted-foreground text-sm mt-1">
-                초대 코드를 받아 모임에 참여해보세요.
-              </p>
-            </div>
+            <EmptyState
+              message="아직 참여한 모임이 없습니다."
+              description="초대 코드를 받아 모임에 참여해보세요."
+            />
           ) : (
-            <div className="card-brutal opacity-60">
-              <p className="text-muted-foreground text-sm">
-                로그인 후 모임을 확인할 수 있습니다.
-              </p>
-            </div>
+            <EmptyState message="로그인 후 모임을 확인할 수 있습니다." />
           )}
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t-2 border-foreground py-8 mt-16">
-        <div className="container mx-auto px-4 text-center text-muted-foreground text-sm">
-          <p className="font-mono">TonariMate &copy; 2026</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

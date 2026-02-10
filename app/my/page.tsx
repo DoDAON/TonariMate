@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { ROUTES } from '@/lib/constants/routes';
-import { LogoutButton } from './LogoutButton';
+import { Header } from '@/components/layouts/Header';
+import { LogoutButton } from '@/components/features/auth/LogoutButton';
+import { ProfileCard } from '@/components/features/auth/ProfileCard';
+import { EmptyState } from '@/components/shared/EmptyState';
 
 export default async function MyPage() {
   const supabase = await createClient();
@@ -26,51 +28,26 @@ export default async function MyPage() {
 
   return (
     <div className="min-h-screen noise-overlay">
-      <header className="border-b-2 border-foreground">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href={ROUTES.HOME} className="text-xl font-black tracking-tighter uppercase">
-            TonariMate
-          </Link>
-          <LogoutButton />
-        </div>
-      </header>
+      <Header actions={<LogoutButton />} />
 
       <main className="container mx-auto px-4 py-8">
         {/* 프로필 섹션 */}
-        <section className="card-brutal mb-8">
-          <div className="flex items-center gap-4">
-            {profile.avatar_url && (
-              <img
-                src={profile.avatar_url}
-                alt={profile.name}
-                className="w-14 h-14 border-2 border-foreground"
-              />
-            )}
-            <div>
-              <h2 className="text-xl font-bold">{profile.name}</h2>
-              <p className="text-muted-foreground text-sm font-mono">
-                {profile.email}
-              </p>
-              {profile.student_id && (
-                <p className="text-muted-foreground text-sm">
-                  학번: {profile.student_id}
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
+        <div className="mb-8">
+          <ProfileCard
+            name={profile.name}
+            email={profile.email}
+            avatarUrl={profile.avatar_url}
+            studentId={profile.student_id}
+          />
+        </div>
 
         {/* 내 모임 섹션 */}
         <section>
           <h2 className="text-2xl font-bold uppercase mb-6">내 모임</h2>
-          <div className="card-brutal opacity-60">
-            <p className="text-muted-foreground text-sm">
-              아직 참여한 모임이 없습니다.
-            </p>
-            <p className="text-muted-foreground text-sm mt-1">
-              초대 코드를 받아 모임에 참여해보세요.
-            </p>
-          </div>
+          <EmptyState
+            message="아직 참여한 모임이 없습니다."
+            description="초대 코드를 받아 모임에 참여해보세요."
+          />
         </section>
       </main>
     </div>
