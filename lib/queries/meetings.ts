@@ -45,3 +45,57 @@ export async function getUserMeetings(userId: string): Promise<UserMeeting[]> {
       joined_at: row.joined_at,
     }));
 }
+
+// --- Phase 2-4: 모임 상세 ---
+
+export interface MeetingDetail {
+  id: string;
+  name: string;
+  description: string | null;
+  period: string;
+  is_active: boolean;
+  created_by: string;
+  memberRole: 'member' | 'admin';
+  memberCount: number;
+}
+
+export async function getMeetingDetail(
+  meetingId: string,
+  userId: string
+): Promise<MeetingDetail | null> {
+  const supabase = await createClient();
+
+  // 모임 정보 + 멤버십 확인을 병렬로 조회
+  const [meetingResult, membershipResult] = await Promise.all([
+    supabase
+      .from('meetings')
+      .select('*')
+      .eq('id', meetingId)
+      .single(),
+    supabase
+      .from('meeting_members')
+      .select('role')
+      .eq('meeting_id', meetingId)
+      .eq('user_id', userId)
+      .single(),
+  ]);
+
+  if (meetingResult.error || !meetingResult.data) return null;
+  if (membershipResult.error || !membershipResult.data) return null;
+
+  const { count } = await supabase
+    .from('meeting_members')
+    .select('*', { count: 'exact', head: true })
+    .eq('meeting_id', meetingId);
+
+  return {
+    id: meetingResult.data.id,
+    name: meetingResult.data.name,
+    description: meetingResult.data.description,
+    period: meetingResult.data.period,
+    is_active: meetingResult.data.is_active,
+    created_by: meetingResult.data.created_by,
+    memberRole: membershipResult.data.role,
+    memberCount: count ?? 0,
+  };
+}
