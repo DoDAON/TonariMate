@@ -11,18 +11,14 @@ export async function GET(request: Request) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-  if (error) {
+  if (error || !data.user) {
     return NextResponse.redirect(`${origin}${ROUTES.LOGIN}`);
   }
 
-  // 세션에서 유저 정보 가져오기
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.redirect(`${origin}${ROUTES.LOGIN}`);
-  }
+  // exchangeCodeForSession 결과에서 user를 바로 사용 (추가 getUser 호출 불필요)
+  const user = data.user;
 
   // users 테이블에 이미 존재하는지 확인
   const { data: existingUser } = await supabase

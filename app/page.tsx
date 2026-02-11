@@ -7,7 +7,9 @@ import { EmptyState } from '@/components/shared/EmptyState';
 
 export default async function Home() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  // 미들웨어에서 getUser()로 이미 검증 완료 → getSession()은 로컬 쿠키에서 읽어 네트워크 호출 없음
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
 
   return (
     <div className="min-h-screen noise-overlay">

@@ -9,11 +9,14 @@ import { JoinMeetingForm } from '@/components/features/meetings/JoinMeetingForm'
 
 export default async function MyPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  // 미들웨어에서 getUser()로 이미 검증 완료 → getSession()은 로컬 쿠키에서 읽어 네트워크 호출 없음
+  const { data: { session } } = await supabase.auth.getSession();
 
-  if (!user) {
+  if (!session) {
     redirect(ROUTES.LOGIN);
   }
+
+  const user = session.user;
 
   // users 테이블에서 프로필 가져오기
   const { data: profile } = await supabase
