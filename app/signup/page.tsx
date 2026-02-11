@@ -24,15 +24,12 @@ export default function SignupPage() {
     setError('');
 
     const supabase = createClient();
-    // 미들웨어에서 이미 인증 검증 완료 → getSession()으로 로컬 세션에서 유저 정보 획득
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
       router.push(ROUTES.LOGIN);
       return;
     }
-
-    const user = session.user;
 
     const { error: insertError } = await supabase.from('users').insert({
       id: user.id,

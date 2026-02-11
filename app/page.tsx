@@ -9,9 +9,7 @@ import { getUserMeetings } from '@/lib/queries/meetings';
 
 export default async function Home() {
   const supabase = await createClient();
-  // 미들웨어에서 getUser()로 이미 검증 완료 → getSession()은 로컬 쿠키에서 읽어 네트워크 호출 없음
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user ?? null;
+  const { data: { user } } = await supabase.auth.getUser();
 
   const meetings = user ? await getUserMeetings(user.id) : [];
 
