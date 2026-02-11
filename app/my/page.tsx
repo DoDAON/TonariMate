@@ -4,8 +4,9 @@ import { ROUTES } from '@/lib/constants/routes';
 import { Header } from '@/components/layouts/Header';
 import { LogoutButton } from '@/components/features/auth/LogoutButton';
 import { ProfileSection } from '@/components/features/auth/ProfileSection';
-import { EmptyState } from '@/components/shared/EmptyState';
 import { JoinMeetingForm } from '@/components/features/meetings/JoinMeetingForm';
+import { MeetingList } from '@/components/features/meetings/MeetingList';
+import { getUserMeetings } from '@/lib/queries/meetings';
 
 export default async function MyPage() {
   const supabase = await createClient();
@@ -30,6 +31,8 @@ export default async function MyPage() {
     redirect(ROUTES.SIGNUP);
   }
 
+  const meetings = await getUserMeetings(user.id);
+
   return (
     <div className="min-h-screen noise-overlay">
       <Header actions={<LogoutButton />} />
@@ -50,10 +53,7 @@ export default async function MyPage() {
         <section>
           <h2 className="text-2xl font-bold uppercase mb-6">내 모임</h2>
           <JoinMeetingForm userId={profile.id} />
-          <EmptyState
-            message="아직 참여한 모임이 없습니다."
-            description="초대 코드를 받아 모임에 참여해보세요."
-          />
+          <MeetingList meetings={meetings} />
         </section>
       </main>
     </div>

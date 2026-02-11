@@ -4,12 +4,16 @@ import { ROUTES } from '@/lib/constants/routes';
 import { Logo } from '@/components/shared/Logo';
 import { Footer } from '@/components/layouts/Footer';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { MeetingList } from '@/components/features/meetings/MeetingList';
+import { getUserMeetings } from '@/lib/queries/meetings';
 
 export default async function Home() {
   const supabase = await createClient();
   // 미들웨어에서 getUser()로 이미 검증 완료 → getSession()은 로컬 쿠키에서 읽어 네트워크 호출 없음
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user ?? null;
+
+  const meetings = user ? await getUserMeetings(user.id) : [];
 
   return (
     <div className="min-h-screen noise-overlay">
@@ -51,10 +55,7 @@ export default async function Home() {
         <section className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold uppercase mb-6">내 모임</h2>
           {user ? (
-            <EmptyState
-              message="아직 참여한 모임이 없습니다."
-              description="초대 코드를 받아 모임에 참여해보세요."
-            />
+            <MeetingList meetings={meetings} />
           ) : (
             <EmptyState message="로그인 후 모임을 확인할 수 있습니다." />
           )}
