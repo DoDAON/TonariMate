@@ -6,20 +6,30 @@
 
 -- 1. 헬퍼 함수 생성 (SECURITY DEFINER = RLS 우회)
 CREATE OR REPLACE FUNCTION is_meeting_member(p_meeting_id UUID)
-RETURNS BOOLEAN AS $$
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public, pg_temp
+AS $$
   SELECT EXISTS (
     SELECT 1 FROM meeting_members
     WHERE meeting_id = p_meeting_id AND user_id = auth.uid()
   );
-$$ LANGUAGE sql SECURITY DEFINER STABLE;
+$$;
 
 CREATE OR REPLACE FUNCTION is_meeting_admin(p_meeting_id UUID)
-RETURNS BOOLEAN AS $$
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public, pg_temp
+AS $$
   SELECT EXISTS (
     SELECT 1 FROM meeting_members
     WHERE meeting_id = p_meeting_id AND user_id = auth.uid() AND role = 'admin'
   );
-$$ LANGUAGE sql SECURITY DEFINER STABLE;
+$$;
 
 -- 2. 기존 자기참조 정책 삭제
 DROP POLICY IF EXISTS "Members can view meeting members" ON meeting_members;
