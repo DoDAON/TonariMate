@@ -18,7 +18,8 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
   const { id } = await params;
 
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) {
     redirect(ROUTES.LOGIN);
