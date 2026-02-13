@@ -11,7 +11,6 @@ interface MissionPageProps {
 }
 
 const STATUS_CONFIG = {
-  upcoming: { label: '시작 전', className: 'bg-muted text-muted-foreground' },
   active: { label: '진행 중', className: 'bg-primary text-primary-foreground' },
   completed: { label: '종료', className: 'bg-muted text-muted-foreground' },
 } as const;
@@ -100,11 +99,6 @@ export default async function MissionPage({ params }: MissionPageProps) {
             </dl>
 
             {/* 상태별 추가 정보 */}
-            {mission.status === 'upcoming' && (
-              <p className="mt-4 text-sm text-muted-foreground">
-                {formatDate(mission.start_date)}에 미션이 시작됩니다.
-              </p>
-            )}
             {mission.status === 'active' && remainingDays !== null && (
               <p className="mt-4 text-sm font-bold">
                 {remainingDays > 0

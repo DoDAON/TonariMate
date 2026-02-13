@@ -15,7 +15,6 @@ export interface MissionSummary {
 
 export interface CategorizedMissions {
   active: MissionSummary[];
-  upcoming: MissionSummary[];
   completed: MissionSummary[];
 }
 
@@ -31,12 +30,11 @@ export async function getMeetingMissions(
     .order('start_date', { ascending: false });
 
   if (error || !data) {
-    return { active: [], upcoming: [], completed: [] };
+    return { active: [], completed: [] };
   }
 
   return {
     active: data.filter((m) => m.status === 'active'),
-    upcoming: data.filter((m) => m.status === 'upcoming'),
     completed: data.filter((m) => m.status === 'completed'),
   };
 }

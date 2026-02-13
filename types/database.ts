@@ -170,7 +170,7 @@ export interface Database {
           start_date: string;
           end_date: string;
           max_participants: number | null;
-          status: 'upcoming' | 'active' | 'completed';
+          status: 'active' | 'completed';
           created_at: string;
           updated_at: string;
         };
@@ -183,7 +183,7 @@ export interface Database {
           start_date: string;
           end_date: string;
           max_participants?: number | null;
-          status?: 'upcoming' | 'active' | 'completed';
+          status?: 'active' | 'completed';
           created_at?: string;
           updated_at?: string;
         };
@@ -196,7 +196,7 @@ export interface Database {
           start_date?: string;
           end_date?: string;
           max_participants?: number | null;
-          status?: 'upcoming' | 'active' | 'completed';
+          status?: 'active' | 'completed';
           created_at?: string;
           updated_at?: string;
         };
@@ -368,7 +368,7 @@ export interface Database {
     };
     Enums: {
       user_role: 'user' | 'admin';
-      mission_status: 'upcoming' | 'active' | 'completed';
+      mission_status: 'active' | 'completed';
       submission_status: 'pending' | 'approved' | 'rejected';
       meeting_member_role: 'member' | 'admin';
     };

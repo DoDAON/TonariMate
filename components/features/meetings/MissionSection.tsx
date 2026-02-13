@@ -10,7 +10,7 @@ interface MissionSectionProps {
 
 export function MissionSection({ missions, meetingId }: MissionSectionProps) {
   const totalCount =
-    missions.active.length + missions.upcoming.length + missions.completed.length;
+    missions.active.length + missions.completed.length;
 
   if (totalCount === 0) {
     return (
@@ -27,13 +27,6 @@ export function MissionSection({ missions, meetingId }: MissionSectionProps) {
         <MissionGroup
           title="진행 중"
           missions={missions.active}
-          meetingId={meetingId}
-        />
-      )}
-      {missions.upcoming.length > 0 && (
-        <MissionGroup
-          title="예정"
-          missions={missions.upcoming}
           meetingId={meetingId}
         />
       )}
