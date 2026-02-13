@@ -40,3 +40,23 @@ export async function getMeetingMissions(
     completed: data.filter((m) => m.status === 'completed'),
   };
 }
+
+export async function getMissionDetail(
+  missionId: string,
+  meetingId: string
+): Promise<MissionSummary | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('missions')
+    .select('id, title, description, points, start_date, end_date, status')
+    .eq('id', missionId)
+    .eq('meeting_id', meetingId)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data;
+}
