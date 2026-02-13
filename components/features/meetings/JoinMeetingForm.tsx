@@ -1,15 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { joinMeeting } from '@/lib/actions/meetings';
 
 interface JoinMeetingFormProps {
   userId: string;
 }
 
 export function JoinMeetingForm({ userId }: JoinMeetingFormProps) {
-  const router = useRouter();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -28,46 +26,17 @@ export function JoinMeetingForm({ userId }: JoinMeetingFormProps) {
     setError('');
     setSuccess('');
 
-    const supabase = createClient();
+    const result = await joinMeeting(userId, trimmed);
 
-    // 1. 초대 코드로 모임 조회
-    const { data: meeting, error: findError } = await supabase
-      .from('meetings')
-      .select('id, name')
-      .eq('invite_code', trimmed)
-      .eq('is_active', true)
-      .single();
-
-    if (findError || !meeting) {
-      setError('유효하지 않은 초대 코드입니다');
+    if (!result.success) {
+      setError(result.error ?? '알 수 없는 오류가 발생했습니다');
       setLoading(false);
       return;
     }
 
-    // 2. 모임 참여
-    const { error: joinError } = await supabase
-      .from('meeting_members')
-      .insert({
-        meeting_id: meeting.id,
-        user_id: userId,
-        role: 'member',
-      });
-
-    if (joinError) {
-      // unique constraint violation = 이미 참여
-      if (joinError.code === '23505') {
-        setError('이미 참여한 모임입니다');
-      } else {
-        setError('모임 참여에 실패했습니다. 다시 시도해주세요.');
-      }
-      setLoading(false);
-      return;
-    }
-
-    setSuccess(`"${meeting.name}" 모임에 참여했습니다!`);
+    setSuccess(`"${result.meetingName}" 모임에 참여했습니다!`);
     setCode('');
     setLoading(false);
-    router.refresh();
   };
 
   return (
