@@ -9,6 +9,7 @@ import { getMeetingMissions } from '@/lib/queries/missions';
 import { MeetingInfo } from '@/components/features/meetings/MeetingInfo';
 import { TeamCard } from '@/components/features/meetings/TeamCard';
 import { MissionSection } from '@/components/features/meetings/MissionSection';
+import { LeaderboardSection } from '@/components/features/leaderboard/LeaderboardSection';
 
 interface MeetingPageProps {
   params: Promise<{ id: string }>;
@@ -58,6 +59,12 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
               </p>
             </div>
           )}
+        </section>
+
+        {/* 리더보드 */}
+        <section className="mt-8">
+          <h2 className="text-2xl font-bold uppercase mb-6">리더보드</h2>
+          <LeaderboardSection meetingId={id} currentTeamId={team?.id} />
         </section>
 
         {/* 미션 */}
