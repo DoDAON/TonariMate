@@ -58,3 +58,35 @@ export async function getMissionDetail(
 
   return data;
 }
+
+export interface TeamSubmission {
+  id: string;
+  mission_id: string;
+  team_id: string;
+  submitted_by: string;
+  image_url: string;
+  status: 'pending' | 'approved' | 'rejected';
+  points_awarded: number;
+  reviewed_at: string | null;
+  created_at: string;
+}
+
+export async function getTeamSubmission(
+  missionId: string,
+  teamId: string
+): Promise<TeamSubmission | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('mission_submissions')
+    .select('id, mission_id, team_id, submitted_by, image_url, status, points_awarded, reviewed_at, created_at')
+    .eq('mission_id', missionId)
+    .eq('team_id', teamId)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data;
+}

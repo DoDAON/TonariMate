@@ -3,7 +3,10 @@ import { createClient } from '@/lib/supabase/server';
 import { ROUTES } from '@/lib/constants/routes';
 import { Header } from '@/components/layouts/Header';
 import { LogoutButton } from '@/components/features/auth/LogoutButton';
-import { getMissionDetail } from '@/lib/queries/missions';
+import { getMissionDetail, getTeamSubmission } from '@/lib/queries/missions';
+import { getUserTeamInMeeting } from '@/lib/queries/teams';
+import MissionSubmissionForm from '@/components/features/missions/MissionSubmissionForm';
+import SubmissionStatus from '@/components/features/missions/SubmissionStatus';
 import Link from 'next/link';
 
 interface MissionPageProps {
@@ -47,6 +50,9 @@ export default async function MissionPage({ params }: MissionPageProps) {
   if (!mission) {
     notFound();
   }
+
+  const team = await getUserTeamInMeeting(meetingId, user.id);
+  const submission = team ? await getTeamSubmission(missionId, team.id) : null;
 
   const statusConfig = STATUS_CONFIG[mission.status];
   const remainingDays = mission.status === 'active' ? getRemainingDays(mission.end_date) : null;
@@ -113,6 +119,32 @@ export default async function MissionPage({ params }: MissionPageProps) {
             )}
           </div>
         </article>
+
+        {/* 미션 제출 섹션 */}
+        <section className="mt-6 card-brutal">
+          <h2 className="text-lg font-black tracking-tight uppercase mb-4">
+            미션 제출
+          </h2>
+
+          {!team ? (
+            <p className="text-sm text-muted-foreground">
+              팀 배정 후 제출 가능합니다.
+            </p>
+          ) : submission ? (
+            <SubmissionStatus submission={submission} />
+          ) : mission.status === 'active' ? (
+            <MissionSubmissionForm
+              missionId={missionId}
+              meetingId={meetingId}
+              teamId={team.id}
+              userId={user.id}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              종료된 미션입니다.
+            </p>
+          )}
+        </section>
       </main>
     </div>
   );
