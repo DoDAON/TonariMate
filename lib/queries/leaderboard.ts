@@ -17,7 +17,6 @@ export async function getTeamLeaderboard(
     .from('teams')
     .select('id, name, team_number, total_points')
     .eq('meeting_id', meetingId)
-    .order('total_points', { ascending: false })
     .order('team_number', { ascending: true });
 
   if (error || !teams) return [];
