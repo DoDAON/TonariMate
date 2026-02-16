@@ -6,6 +6,7 @@ import { LogoutButton } from '@/components/features/auth/LogoutButton';
 import { getMeetingDetail } from '@/lib/queries/meetings';
 import { getUserTeamInMeeting } from '@/lib/queries/teams';
 import { getMeetingMissions } from '@/lib/queries/missions';
+import Link from 'next/link';
 import { MeetingInfo } from '@/components/features/meetings/MeetingInfo';
 import { TeamCard } from '@/components/features/meetings/TeamCard';
 import { MissionSection } from '@/components/features/meetings/MissionSection';
@@ -51,7 +52,9 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
         <section className="mt-8">
           <h2 className="text-2xl font-bold uppercase mb-6">내 조</h2>
           {team ? (
-            <TeamCard team={team} />
+            <Link href={ROUTES.TEAM(id, team.id)}>
+              <TeamCard team={team} />
+            </Link>
           ) : (
             <div className="card-brutal opacity-60">
               <p className="text-muted-foreground text-sm">
