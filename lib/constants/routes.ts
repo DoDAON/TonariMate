@@ -10,8 +10,13 @@ export const ROUTES = {
   // 관리자
   ADMIN: '/admin',
   ADMIN_MEETING_NEW: '/admin/meetings/new',
-  ADMIN_MEETING_EDIT: (id: string) => `/admin/meetings/${id}/edit`,
   ADMIN_MEETING: (id: string) => `/admin/meetings/${id}`,
+  ADMIN_MEETING_EDIT: (id: string) => `/admin/meetings/${id}/edit`,
+  ADMIN_MEETING_TEAMS: (id: string) => `/admin/meetings/${id}/teams`,
+  ADMIN_MEETING_MISSIONS: (id: string) => `/admin/meetings/${id}/missions`,
+  ADMIN_MEETING_MISSION_NEW: (id: string) => `/admin/meetings/${id}/missions/new`,
+  ADMIN_MEETING_MISSION_EDIT: (id: string, missionId: string) => `/admin/meetings/${id}/missions/${missionId}/edit`,
+  ADMIN_MEETING_SUBMISSIONS: (id: string) => `/admin/meetings/${id}/submissions`,
 
   // 인증
   LOGIN: '/login',
