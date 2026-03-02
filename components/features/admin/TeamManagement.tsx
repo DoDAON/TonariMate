@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { toast } from 'sonner';
 import { setupTeams, deleteTeam, assignMember, removeMember, moveMember } from '@/lib/actions/admin-teams';
 import { formatTeamName } from '@/lib/utils';
 import type { AdminTeam, UnassignedMember } from '@/lib/queries/admin-teams';
@@ -140,7 +141,7 @@ export function TeamManagement({ meetingId, teams, unassignedMembers }: TeamMana
     const label = formatTeamName(teamNumber, teamName);
     if (!confirm(`"${label}"을 삭제하시겠습니까? 멤버도 미배정 상태가 됩니다.`)) return;
     const result = await deleteTeam(teamId, meetingId);
-    if (!result.success) alert(result.error);
+    if (!result.success) toast.error(result.error ?? '조 삭제에 실패했습니다');
   }
 
   return (

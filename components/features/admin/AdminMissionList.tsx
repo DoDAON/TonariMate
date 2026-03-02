@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { ROUTES } from '@/lib/constants/routes';
 import { deleteMission } from '@/lib/actions/admin-missions';
 import { getEffectiveMissionStatus } from '@/lib/utils';
@@ -28,7 +29,7 @@ export function AdminMissionList({ missions, meetingId }: AdminMissionListProps)
   async function handleDelete(missionId: string, title: string) {
     if (!confirm(`"${title}" 미션을 삭제하시겠습니까?`)) return;
     const result = await deleteMission(missionId, meetingId);
-    if (!result.success) alert(result.error);
+    if (!result.success) toast.error(result.error ?? '미션 삭제에 실패했습니다');
   }
 
   return (

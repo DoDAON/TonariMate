@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { toast } from 'sonner';
 import { reviewSubmission, deleteSubmission } from '@/lib/actions/admin-submissions';
 import { formatTeamName } from '@/lib/utils';
 
@@ -61,7 +62,7 @@ export function SubmissionReviewCard({
       action === 'approve' ? customPoints : undefined
     );
     setLoading(false);
-    if (!result.success) alert(result.error);
+    if (!result.success) toast.error(result.error ?? '처리에 실패했습니다');
   }
 
   async function handleDelete() {
@@ -69,7 +70,7 @@ export function SubmissionReviewCard({
     setLoading(true);
     const result = await deleteSubmission(submission.id, meetingId, missionId);
     setLoading(false);
-    if (!result.success) alert(result.error);
+    if (!result.success) toast.error(result.error ?? '삭제에 실패했습니다');
   }
 
   const isPending = submission.status === 'pending';

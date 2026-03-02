@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { regenerateInviteCode } from '@/lib/actions/admin-meetings';
 
 interface InviteCodeDisplayProps {
@@ -15,6 +16,7 @@ export function InviteCodeDisplay({ meetingId, inviteCode }: InviteCodeDisplayPr
   async function handleCopy() {
     await navigator.clipboard.writeText(inviteCode);
     setCopied(true);
+    toast.success('초대 코드 복사됨');
     setTimeout(() => setCopied(false), 2000);
   }
 
