@@ -152,6 +152,24 @@ export async function removeMember(teamMemberId: string, meetingId: string): Pro
   return { success: true };
 }
 
+export async function kickMember(userId: string, meetingId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('meeting_members')
+    .delete()
+    .eq('user_id', userId)
+    .eq('meeting_id', meetingId);
+
+  if (error) {
+    return { success: false, error: '추방에 실패했습니다' };
+  }
+
+  revalidatePath(ROUTES.ADMIN_MEETING_TEAMS(meetingId));
+
+  return { success: true };
+}
+
 /**
  * 멤버를 다른 조로 이동 (삭제 후 재삽입 방식 — RLS 안전)
  */

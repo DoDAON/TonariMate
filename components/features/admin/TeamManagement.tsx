@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { toast } from 'sonner';
-import { setupTeams, deleteTeam, updateTeamName, assignMember, removeMember, moveMember } from '@/lib/actions/admin-teams';
+import { setupTeams, deleteTeam, updateTeamName, assignMember, removeMember, moveMember, kickMember } from '@/lib/actions/admin-teams';
 import { formatTeamName } from '@/lib/utils';
 import type { AdminTeam, UnassignedMember } from '@/lib/queries/admin-teams';
 
@@ -246,28 +246,43 @@ export function TeamManagement({ meetingId, teams, unassignedMembers }: TeamMana
                         <span className="text-muted-foreground font-mono ml-2">{member.student_id}</span>
                       )}
                     </span>
-                    {teams.length > 0 && (
-                      <select
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            assignMember(e.target.value, member.user_id, meetingId);
-                            e.target.value = '';
-                          }
-                        }}
-                        defaultValue=""
-                        className="input-brutal text-sm"
-                        onPointerDown={(e) => e.stopPropagation()}
-                      >
-                        <option value="" disabled>
-                          조 배정
-                        </option>
-                        {teams.map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {formatTeamName(t.team_number, t.name)}
+                    <div
+                      className="flex items-center gap-2"
+                      onPointerDown={(e) => e.stopPropagation()}
+                    >
+                      {teams.length > 0 && (
+                        <select
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              assignMember(e.target.value, member.user_id, meetingId);
+                              e.target.value = '';
+                            }
+                          }}
+                          defaultValue=""
+                          className="input-brutal text-sm"
+                        >
+                          <option value="" disabled>
+                            조 배정
                           </option>
-                        ))}
-                      </select>
-                    )}
+                          {teams.map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {formatTeamName(t.team_number, t.name)}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!confirm(`"${member.name}"을 모임에서 추방하시겠습니까?`)) return;
+                          const result = await kickMember(member.user_id, meetingId);
+                          if (!result.success) toast.error(result.error ?? '추방에 실패했습니다');
+                        }}
+                        className="btn-brutal bg-destructive text-destructive-foreground text-sm"
+                      >
+                        추방
+                      </button>
+                    </div>
                   </div>
                 );
               })}
