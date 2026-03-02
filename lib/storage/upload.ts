@@ -34,7 +34,8 @@ export async function uploadMissionImage(
     .upload(path, file, { upsert: true });
 
   if (error) {
-    return { success: false, error: '이미지 업로드에 실패했습니다' };
+    console.error('[Storage upload error]', error.message, error);
+    return { success: false, error: `이미지 업로드에 실패했습니다: ${error.message}` };
   }
 
   const { data: urlData } = supabase.storage
