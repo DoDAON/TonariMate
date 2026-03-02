@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -31,6 +32,9 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "TonariMate",
   },
+  icons: {
+    apple: "/icons/icon-180x180.png",
+  },
 };
 
 export default function RootLayout({
@@ -44,6 +48,7 @@ export default function RootLayout({
         className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
         {children}
+        <Toaster position="bottom-center" />
       </body>
     </html>
   );
