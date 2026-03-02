@@ -1,5 +1,4 @@
 import { getTeamLeaderboard } from '@/lib/queries/leaderboard';
-import { formatTeamName } from '@/lib/utils';
 
 interface LeaderboardSectionProps {
   meetingId: string;
@@ -27,27 +26,26 @@ export async function LeaderboardSection({
       {teams.map((team) => {
         const isMyTeam = team.id === currentTeamId;
 
+        const defaultName = `${team.team_number}조`;
+        const hasCustomName = team.name !== defaultName;
+
         return (
           <div
             key={team.id}
-            className={`card-brutal flex items-center gap-4 ${
-              isMyTeam ? 'border-primary border-[3px]' : ''
-            }`}
+            className={`card-brutal ${isMyTeam ? 'border-primary border-[3px]' : ''}`}
           >
-            {/* 팀 정보 */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-bold truncate">{formatTeamName(team.team_number, team.name)}</span>
-                {isMyTeam && (
-                  <span className="text-xs font-bold bg-primary text-primary-foreground px-1.5 py-0.5 border border-foreground">
-                    MY
-                  </span>
-                )}
-              </div>
-              <span className="text-muted-foreground text-xs">
-                {team.member_count}명
-              </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold">{defaultName}</span>
+              {isMyTeam && (
+                <span className="text-xs font-bold bg-primary text-primary-foreground px-1.5 py-0.5 border border-foreground">
+                  MY
+                </span>
+              )}
             </div>
+            {hasCustomName && (
+              <p className="text-sm text-muted-foreground truncate">{team.name}</p>
+            )}
+            <p className="text-xs text-muted-foreground">{team.member_count}명</p>
           </div>
         );
       })}

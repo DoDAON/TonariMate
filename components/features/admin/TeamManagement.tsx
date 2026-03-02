@@ -292,25 +292,32 @@ export function TeamManagement({ meetingId, teams, unassignedMembers }: TeamMana
               <div className="flex items-center justify-between mb-3 gap-2">
                 {isEditingName ? (
                   <>
-                    <div className="flex items-center gap-1 flex-1 min-w-0">
-                      <span className="font-black text-lg shrink-0">{team.team_number}조</span>
-                      <input
-                        autoFocus
-                        value={editingTeamName}
-                        onChange={(e) => setEditingTeamName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleUpdateTeamName(team.id);
-                          if (e.key === 'Escape') setEditingTeamId(null);
-                        }}
-                        className="input-brutal text-sm flex-1 min-w-0"
-                        placeholder="조 이름"
-                      />
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center gap-1">
+                        <span className="font-black text-lg shrink-0">{team.team_number}조</span>
+                        <input
+                          autoFocus
+                          value={editingTeamName}
+                          onChange={(e) => setEditingTeamName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && editingTeamName.trim().length >= 2 && editingTeamName.trim().length <= 10) handleUpdateTeamName(team.id);
+                            if (e.key === 'Escape') setEditingTeamId(null);
+                          }}
+                          maxLength={10}
+                          className="input-brutal text-sm flex-1 min-w-0"
+                          placeholder="조 이름 (2~10자)"
+                        />
+                      </div>
+                      {editingTeamName.trim().length > 0 && editingTeamName.trim().length < 2 && (
+                        <p className="text-xs text-destructive font-bold">2자 이상 입력해주세요</p>
+                      )}
                     </div>
                     <div className="flex gap-1 shrink-0">
                       <button
                         type="button"
                         onClick={() => handleUpdateTeamName(team.id)}
-                        className="btn-brutal text-sm"
+                        disabled={editingTeamName.trim().length < 2 || editingTeamName.trim().length > 10}
+                        className="btn-brutal text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         저장
                       </button>

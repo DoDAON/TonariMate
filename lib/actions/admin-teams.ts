@@ -82,7 +82,8 @@ export async function updateTeamName(
   meetingId: string
 ): Promise<ActionResult> {
   const trimmed = name.trim();
-  if (!trimmed) return { success: false, error: '조 이름을 입력해주세요' };
+  if (!trimmed || trimmed.length < 2) return { success: false, error: '조 이름은 2자 이상이어야 합니다' };
+  if (trimmed.length > 10) return { success: false, error: '조 이름은 10자 이하여야 합니다' };
 
   const supabase = await createClient();
 
