@@ -7,16 +7,11 @@ import { LogoutButton } from '@/components/features/auth/LogoutButton';
 import { requireAdmin } from '@/lib/queries/admin';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { SubmissionReviewCard } from '@/components/features/admin/SubmissionReviewCard';
+import { formatTeamName, getEffectiveMissionStatus } from '@/lib/utils';
 import type { SubmissionForReview } from '@/components/features/admin/SubmissionReviewCard';
 
 interface MissionDetailPageProps {
   params: Promise<{ id: string; missionId: string }>;
-}
-
-function getEffectiveStatus(endDate: string): 'active' | 'completed' {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return new Date(endDate) < today ? 'completed' : 'active';
 }
 
 function formatDate(dateStr: string): string {
@@ -38,7 +33,6 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
 
   await requireAdmin(user.id);
 
-  // 미션 정보
   const { data: mission, error: mError } = await supabase
     .from('missions')
     .select('id, title, description, points, start_date, end_date, status')
@@ -48,14 +42,12 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
 
   if (mError || !mission) notFound();
 
-  // 해당 모임의 전체 조
   const { data: teams } = await supabase
     .from('teams')
     .select('id, name, team_number')
     .eq('meeting_id', meetingId)
     .order('team_number');
 
-  // 이 미션의 모든 제출물
   const { data: submissions } = await supabase
     .from('mission_submissions')
     .select('id, team_id, image_url, status, points_awarded, created_at')
@@ -63,14 +55,13 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
 
   const submissionMap = new Map(submissions?.map((s) => [s.team_id, s]) ?? []);
 
-  const effectiveStatus = getEffectiveStatus(mission.end_date);
+  const effectiveStatus = getEffectiveMissionStatus(mission.status, mission.end_date);
 
-  // 제출된 팀 (리뷰 카드로 표시)
   const submittedTeams = (teams ?? [])
     .filter((t) => submissionMap.has(t.id))
-    .map((t) => {
+    .map((t): SubmissionForReview => {
       const s = submissionMap.get(t.id)!;
-      const review: SubmissionForReview = {
+      return {
         id: s.id,
         image_url: s.image_url,
         status: s.status,
@@ -80,10 +71,8 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
         team_name: t.name,
         team_number: t.team_number,
       };
-      return review;
     });
 
-  // 미제출 조
   const notSubmittedTeams = (teams ?? []).filter((t) => !submissionMap.has(t.id));
 
   return (
@@ -151,7 +140,7 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
                       key={t.id}
                       className="px-2 py-0.5 text-sm font-bold border-2 border-border bg-muted"
                     >
-                      {t.name}
+                      {formatTeamName(t.team_number, t.name)}
                     </span>
                   ))}
                 </div>
@@ -176,7 +165,7 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
               </div>
             )}
 
-            {submittedTeams.length === 0 && notSubmittedTeams.length === (teams ?? []).length && (
+            {submittedTeams.length === 0 && (
               <p className="text-sm text-muted-foreground">아직 제출한 조가 없습니다.</p>
             )}
           </div>

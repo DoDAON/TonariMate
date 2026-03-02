@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { formatTeamName } from '@/lib/utils';
 import type { UserTeam } from '@/lib/queries/teams';
 
 interface TeamCardProps {
@@ -10,10 +11,7 @@ export function TeamCard({ team }: TeamCardProps) {
     <div className="card-brutal transition-all duration-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:[box-shadow:var(--shadow-brutal-lg)]">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold">
-          {team.name}
-          <span className="text-muted-foreground font-mono text-sm ml-2">
-            #{team.team_number}
-          </span>
+          {formatTeamName(team.team_number, team.name)}
         </h3>
         <span className="font-mono font-bold">{team.total_points}pt</span>
       </div>

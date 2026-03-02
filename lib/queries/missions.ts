@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { getEffectiveMissionStatus } from '@/lib/utils';
 import type { Database } from '@/types/database';
 
 type MissionStatus = Database['public']['Enums']['mission_status'];
@@ -33,9 +34,15 @@ export async function getMeetingMissions(
     return { active: [], completed: [] };
   }
 
+  // 날짜 기반으로 실질 상태 계산
+  const withEffective = data.map((m) => ({
+    ...m,
+    status: getEffectiveMissionStatus(m.status, m.end_date),
+  }));
+
   return {
-    active: data.filter((m) => m.status === 'active'),
-    completed: data.filter((m) => m.status === 'completed'),
+    active: withEffective.filter((m) => m.status === 'active'),
+    completed: withEffective.filter((m) => m.status === 'completed'),
   };
 }
 
@@ -56,7 +63,10 @@ export async function getMissionDetail(
     return null;
   }
 
-  return data;
+  return {
+    ...data,
+    status: getEffectiveMissionStatus(data.status, data.end_date),
+  };
 }
 
 export interface TeamSubmission {
@@ -79,7 +89,9 @@ export async function getTeamSubmission(
 
   const { data, error } = await supabase
     .from('mission_submissions')
-    .select('id, mission_id, team_id, submitted_by, image_url, status, points_awarded, reviewed_at, created_at')
+    .select(
+      'id, mission_id, team_id, submitted_by, image_url, status, points_awarded, reviewed_at, created_at'
+    )
     .eq('mission_id', missionId)
     .eq('team_id', teamId)
     .single();

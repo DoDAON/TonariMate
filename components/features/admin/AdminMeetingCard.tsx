@@ -31,7 +31,7 @@ export function AdminMeetingCard({ meeting }: AdminMeetingCardProps) {
 
         <div className="flex gap-4 text-sm font-mono">
           <span>{meeting.member_count}명</span>
-          <span>{meeting.team_count}팀</span>
+          <span>{meeting.team_count}조</span>
           <span>{meeting.mission_count}미션</span>
         </div>
       </div>

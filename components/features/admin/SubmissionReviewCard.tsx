@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { reviewSubmission } from '@/lib/actions/admin-submissions';
+import { reviewSubmission, deleteSubmission } from '@/lib/actions/admin-submissions';
+import { formatTeamName } from '@/lib/utils';
 
 export interface SubmissionForReview {
   id: string;
@@ -37,9 +38,16 @@ const STATUS_LABEL: Record<string, string> = {
   rejected: '거절',
 };
 
-export function SubmissionReviewCard({ submission, meetingId, missionId, reviewerId }: SubmissionReviewCardProps) {
+export function SubmissionReviewCard({
+  submission,
+  meetingId,
+  missionId,
+  reviewerId,
+}: SubmissionReviewCardProps) {
   const [loading, setLoading] = useState(false);
   const [customPoints, setCustomPoints] = useState(submission.mission_points);
+
+  const teamLabel = formatTeamName(submission.team_number, submission.team_name);
 
   async function handleReview(action: 'approve' | 'reject') {
     if (action === 'reject' && !confirm('이 제출물을 거절하시겠습니까?')) return;
@@ -56,31 +64,49 @@ export function SubmissionReviewCard({ submission, meetingId, missionId, reviewe
     if (!result.success) alert(result.error);
   }
 
+  async function handleDelete() {
+    if (!confirm(`"${teamLabel}"의 제출물을 삭제하시겠습니까?${submission.status === 'approved' ? '\n승인된 포인트도 회수됩니다.' : ''}`)) return;
+    setLoading(true);
+    const result = await deleteSubmission(submission.id, meetingId, missionId);
+    setLoading(false);
+    if (!result.success) alert(result.error);
+  }
+
   const isPending = submission.status === 'pending';
 
   return (
     <div className="border-2 border-border p-4 space-y-3">
-      {/* 조 정보 + 상태 */}
+      {/* 조 정보 + 상태 + 삭제 */}
       <div className="flex items-center justify-between">
-        <span className="font-black">{submission.team_name}</span>
-        <span
-          className={`px-2 py-0.5 text-xs font-bold uppercase border-2 border-border ${
-            submission.status === 'pending'
-              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-              : submission.status === 'approved'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-destructive text-destructive-foreground'
-          }`}
+        <div className="flex items-center gap-2">
+          <span className="font-black">{teamLabel}</span>
+          <span
+            className={`px-2 py-0.5 text-xs font-bold uppercase border-2 border-border ${
+              submission.status === 'pending'
+                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                : submission.status === 'approved'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-destructive text-destructive-foreground'
+            }`}
+          >
+            {STATUS_LABEL[submission.status]}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={loading}
+          className="text-xs text-destructive font-bold hover:underline"
         >
-          {STATUS_LABEL[submission.status]}
-        </span>
+          삭제
+        </button>
       </div>
 
       {/* 이미지 */}
       <div className="relative w-full aspect-video border-2 border-border overflow-hidden bg-muted">
         <Image
           src={submission.image_url}
-          alt={`${submission.team_name} 제출물`}
+          alt={`${teamLabel} 제출물`}
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 50vw"

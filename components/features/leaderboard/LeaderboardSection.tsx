@@ -1,4 +1,5 @@
 import { getTeamLeaderboard } from '@/lib/queries/leaderboard';
+import { formatTeamName } from '@/lib/utils';
 
 interface LeaderboardSectionProps {
   meetingId: string;
@@ -36,7 +37,7 @@ export async function LeaderboardSection({
             {/* 팀 정보 */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="font-bold truncate">{team.name}</span>
+                <span className="font-bold truncate">{formatTeamName(team.team_number, team.name)}</span>
                 {isMyTeam && (
                   <span className="text-xs font-bold bg-primary text-primary-foreground px-1.5 py-0.5 border border-foreground">
                     MY

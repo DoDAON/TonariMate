@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ROUTES } from '@/lib/constants/routes';
 import { deleteMission } from '@/lib/actions/admin-missions';
+import { getEffectiveMissionStatus } from '@/lib/utils';
 
 interface Mission {
   id: string;
@@ -22,12 +23,6 @@ function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
 }
 
-/** 종료일이 지났으면 'completed', 아니면 stored status */
-function getEffectiveStatus(mission: Mission): 'active' | 'completed' {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return new Date(mission.end_date) < today ? 'completed' : mission.status;
-}
 
 export function AdminMissionList({ missions, meetingId }: AdminMissionListProps) {
   async function handleDelete(missionId: string, title: string) {
@@ -39,7 +34,7 @@ export function AdminMissionList({ missions, meetingId }: AdminMissionListProps)
   return (
     <div className="grid gap-3">
       {missions.map((mission) => {
-        const effectiveStatus = getEffectiveStatus(mission);
+        const effectiveStatus = getEffectiveMissionStatus(mission.status, mission.end_date);
         return (
           <div key={mission.id} className="card-brutal flex items-center justify-between">
             <div className="flex-1">

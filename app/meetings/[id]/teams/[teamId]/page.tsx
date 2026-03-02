@@ -6,6 +6,7 @@ import { ROUTES } from '@/lib/constants/routes';
 import { Header } from '@/components/layouts/Header';
 import { LogoutButton } from '@/components/features/auth/LogoutButton';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { formatTeamName } from '@/lib/utils';
 import {
   getTeamDetail,
   getTeamPointsHistory,
@@ -54,10 +55,7 @@ export default async function TeamPage({ params }: TeamPageProps) {
         <div className="card-brutal mb-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold">
-              {team.name}
-              <span className="text-muted-foreground font-mono text-base ml-2">
-                #{team.team_number}
-              </span>
+              {formatTeamName(team.team_number, team.name)}
             </h1>
             <div className="text-right">
               <div className="font-mono font-bold text-3xl">
