@@ -180,7 +180,7 @@ export function TeamManagement({ meetingId, teams, unassignedMembers }: TeamMana
         <div className="card-brutal">
           <h2 className="text-lg font-black uppercase tracking-tight mb-1">조 편성</h2>
           <p className="text-sm text-muted-foreground mb-3">
-            조 수를 설정합니다. 기존 조 이름은 기본값("N조")으로 초기화됩니다.
+            조 수를 설정합니다. 기존 조 이름은 기본값(N조)으로 초기화됩니다.
           </p>
           <div className="flex items-center gap-3">
             <select
