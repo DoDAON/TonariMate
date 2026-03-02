@@ -66,7 +66,7 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
 
         {/* 리더보드 */}
         <section className="mt-8">
-          <h2 className="text-2xl font-bold uppercase mb-6">리더보드</h2>
+          <h2 className="text-2xl font-bold uppercase mb-6">전체 조</h2>
           <LeaderboardSection meetingId={id} currentTeamId={team?.id} />
         </section>
 

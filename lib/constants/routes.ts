@@ -15,6 +15,7 @@ export const ROUTES = {
   ADMIN_MEETING_TEAMS: (id: string) => `/admin/meetings/${id}/teams`,
   ADMIN_MEETING_MISSIONS: (id: string) => `/admin/meetings/${id}/missions`,
   ADMIN_MEETING_MISSION_NEW: (id: string) => `/admin/meetings/${id}/missions/new`,
+  ADMIN_MEETING_MISSION: (id: string, missionId: string) => `/admin/meetings/${id}/missions/${missionId}`,
   ADMIN_MEETING_MISSION_EDIT: (id: string, missionId: string) => `/admin/meetings/${id}/missions/${missionId}/edit`,
   ADMIN_MEETING_SUBMISSIONS: (id: string) => `/admin/meetings/${id}/submissions`,
 

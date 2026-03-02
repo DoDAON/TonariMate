@@ -19,9 +19,7 @@ export default async function AdminMeetingPage({ params }: AdminMeetingPageProps
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user;
 
-  if (!user) {
-    redirect(ROUTES.LOGIN);
-  }
+  if (!user) redirect(ROUTES.LOGIN);
 
   await requireAdmin(user.id);
 
@@ -31,25 +29,18 @@ export default async function AdminMeetingPage({ params }: AdminMeetingPageProps
     .eq('id', id)
     .single();
 
-  if (error || !meeting) {
-    notFound();
-  }
+  if (error || !meeting) notFound();
 
-  // 통계 병렬 조회
-  const [membersResult, teamsResult, missionsResult, submissionsResult] = await Promise.all([
+  const [membersResult, teamsResult, missionsResult] = await Promise.all([
     supabase.from('meeting_members').select('*', { count: 'exact', head: true }).eq('meeting_id', id),
     supabase.from('teams').select('*', { count: 'exact', head: true }).eq('meeting_id', id),
     supabase.from('missions').select('*', { count: 'exact', head: true }).eq('meeting_id', id),
-    supabase.from('mission_submissions').select('id, status, missions!inner(meeting_id)').eq('missions.meeting_id', id),
   ]);
-
-  const pendingCount = submissionsResult.data?.filter((s) => s.status === 'pending').length ?? 0;
 
   const navItems = [
     { label: '모임 수정', href: ROUTES.ADMIN_MEETING_EDIT(id) },
-    { label: `팀 관리 (${teamsResult.count ?? 0})`, href: ROUTES.ADMIN_MEETING_TEAMS(id) },
+    { label: `조 관리 (${teamsResult.count ?? 0}조)`, href: ROUTES.ADMIN_MEETING_TEAMS(id) },
     { label: `미션 관리 (${missionsResult.count ?? 0})`, href: ROUTES.ADMIN_MEETING_MISSIONS(id) },
-    { label: `제출물 심사${pendingCount > 0 ? ` (${pendingCount}건 대기)` : ''}`, href: ROUTES.ADMIN_MEETING_SUBMISSIONS(id) },
   ];
 
   return (
@@ -69,34 +60,26 @@ export default async function AdminMeetingPage({ params }: AdminMeetingPageProps
         {/* 모임 정보 */}
         <div className="card-brutal mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-black uppercase tracking-tight">
-              {meeting.name}
-            </h1>
+            <h1 className="text-3xl font-black uppercase tracking-tight">{meeting.name}</h1>
             <ToggleActiveButton meetingId={id} isActive={meeting.is_active} />
           </div>
 
-          <p className="text-sm text-muted-foreground font-mono mb-2">
-            {meeting.period}
-          </p>
+          <p className="text-sm text-muted-foreground font-mono mb-2">{meeting.period}</p>
 
           {meeting.description && (
-            <p className="text-sm text-muted-foreground mb-4">
-              {meeting.description}
-            </p>
+            <p className="text-sm text-muted-foreground mb-4">{meeting.description}</p>
           )}
 
           <div className="flex gap-4 text-sm font-mono">
             <span>{membersResult.count ?? 0}명 참여</span>
-            <span>{teamsResult.count ?? 0}팀</span>
+            <span>{teamsResult.count ?? 0}조</span>
             <span>{missionsResult.count ?? 0}미션</span>
           </div>
         </div>
 
         {/* 초대코드 */}
         <div className="card-brutal mb-6">
-          <h2 className="text-lg font-black uppercase tracking-tight mb-3">
-            초대코드
-          </h2>
+          <h2 className="text-lg font-black uppercase tracking-tight mb-3">초대코드</h2>
           <InviteCodeDisplay meetingId={id} inviteCode={meeting.invite_code} />
         </div>
 

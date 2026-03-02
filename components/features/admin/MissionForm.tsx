@@ -15,11 +15,12 @@ interface MissionFormProps {
     points: number;
     start_date: string;
     end_date: string;
-    status: 'active' | 'completed';
   };
+  /** edit 모드에서 종료일이 이미 지났는지 여부 (서버에서 계산 후 전달) */
+  isExpired?: boolean;
 }
 
-export function MissionForm({ meetingId, mode, missionId, defaultValues }: MissionFormProps) {
+export function MissionForm({ meetingId, mode, missionId, defaultValues, isExpired }: MissionFormProps) {
   const router = useRouter();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,9 +32,10 @@ export function MissionForm({ meetingId, mode, missionId, defaultValues }: Missi
 
     const formData = new FormData(e.currentTarget);
 
-    const result = mode === 'create'
-      ? await createMission(meetingId, formData)
-      : await updateMission(missionId!, meetingId, formData);
+    const result =
+      mode === 'create'
+        ? await createMission(meetingId, formData)
+        : await updateMission(missionId!, meetingId, formData);
 
     setLoading(false);
 
@@ -77,34 +79,18 @@ export function MissionForm({ meetingId, mode, missionId, defaultValues }: Missi
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="points" className="block text-sm font-bold uppercase mb-1">
-            포인트
-          </label>
-          <input
-            id="points"
-            name="points"
-            type="number"
-            min={1}
-            defaultValue={defaultValues?.points ?? 10}
-            className="input-brutal w-full"
-          />
-        </div>
-        <div>
-          <label htmlFor="status" className="block text-sm font-bold uppercase mb-1">
-            상태
-          </label>
-          <select
-            id="status"
-            name="status"
-            defaultValue={defaultValues?.status ?? 'active'}
-            className="input-brutal w-full"
-          >
-            <option value="active">진행 중</option>
-            <option value="completed">종료</option>
-          </select>
-        </div>
+      <div>
+        <label htmlFor="points" className="block text-sm font-bold uppercase mb-1">
+          포인트
+        </label>
+        <input
+          id="points"
+          name="points"
+          type="number"
+          min={1}
+          defaultValue={defaultValues?.points ?? 10}
+          className="input-brutal w-40"
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -136,16 +122,17 @@ export function MissionForm({ meetingId, mode, missionId, defaultValues }: Missi
         </div>
       </div>
 
-      {error && (
-        <p className="text-sm text-destructive font-bold">{error}</p>
+      {/* 상태는 날짜 기반 자동 계산. edit 모드에서 이미 종료된 미션은 안내 표시 */}
+      {mode === 'edit' && isExpired && (
+        <p className="text-sm text-muted-foreground border-2 border-border p-2 bg-muted">
+          종료일이 지난 미션은 자동으로 &quot;종료&quot; 상태가 됩니다.
+        </p>
       )}
 
+      {error && <p className="text-sm text-destructive font-bold">{error}</p>}
+
       <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn-brutal"
-        >
+        <button type="submit" disabled={loading} className="btn-brutal">
           {loading ? '처리 중...' : mode === 'create' ? '미션 생성' : '수정 완료'}
         </button>
         <button

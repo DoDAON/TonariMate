@@ -19,22 +19,17 @@ export default async function TeamManagementPage({ params }: TeamManagementPageP
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user;
 
-  if (!user) {
-    redirect(ROUTES.LOGIN);
-  }
+  if (!user) redirect(ROUTES.LOGIN);
 
   await requireAdmin(user.id);
 
-  // 모임 존재 확인
   const { data: meeting, error } = await supabase
     .from('meetings')
     .select('name')
     .eq('id', id)
     .single();
 
-  if (error || !meeting) {
-    notFound();
-  }
+  if (error || !meeting) notFound();
 
   const [teams, unassignedMembers] = await Promise.all([
     getAdminTeams(id),
@@ -55,9 +50,7 @@ export default async function TeamManagementPage({ params }: TeamManagementPageP
           </Link>
         </nav>
 
-        <h1 className="text-3xl font-black uppercase tracking-tight mb-8">
-          팀 관리
-        </h1>
+        <h1 className="text-3xl font-black uppercase tracking-tight mb-8">조 관리</h1>
 
         <TeamManagement
           meetingId={id}
