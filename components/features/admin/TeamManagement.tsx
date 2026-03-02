@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { toast } from 'sonner';
-import { setupTeams, deleteTeam, assignMember, removeMember, moveMember } from '@/lib/actions/admin-teams';
+import { setupTeams, deleteTeam, updateTeamName, assignMember, removeMember, moveMember } from '@/lib/actions/admin-teams';
 import { formatTeamName } from '@/lib/utils';
 import type { AdminTeam, UnassignedMember } from '@/lib/queries/admin-teams';
 
@@ -34,7 +34,11 @@ export function TeamManagement({ meetingId, teams, unassignedMembers }: TeamMana
   const ghostRef = useRef<HTMLDivElement>(null);
   const dropZoneRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
-  // 편집 버튼용
+  // 조 이름 편집
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
+  const [editingTeamName, setEditingTeamName] = useState('');
+
+  // 멤버 이동 편집
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
 
   // ────────── 조 편성 ──────────
@@ -142,6 +146,20 @@ export function TeamManagement({ meetingId, teams, unassignedMembers }: TeamMana
     if (!confirm(`"${label}"을 삭제하시겠습니까? 멤버도 미배정 상태가 됩니다.`)) return;
     const result = await deleteTeam(teamId, meetingId);
     if (!result.success) toast.error(result.error ?? '조 삭제에 실패했습니다');
+  }
+
+  function startEditTeamName(teamId: string, currentName: string) {
+    setEditingTeamId(teamId);
+    setEditingTeamName(currentName);
+  }
+
+  async function handleUpdateTeamName(teamId: string) {
+    const result = await updateTeamName(teamId, editingTeamName, meetingId);
+    if (!result.success) {
+      toast.error(result.error ?? '이름 변경에 실패했습니다');
+    } else {
+      setEditingTeamId(null);
+    }
   }
 
   return (
@@ -261,6 +279,7 @@ export function TeamManagement({ meetingId, teams, unassignedMembers }: TeamMana
         {teams.map((team) => {
           const teamLabel = formatTeamName(team.team_number, team.name);
           const otherTeams = teams.filter((t) => t.id !== team.id);
+          const isEditingName = editingTeamId === team.id;
 
           return (
             <div
@@ -270,15 +289,61 @@ export function TeamManagement({ meetingId, teams, unassignedMembers }: TeamMana
                 dragOverId === team.id ? 'ring-2 ring-primary bg-muted/60' : ''
               }`}
             >
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-black text-lg">{teamLabel}</h3>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteTeam(team.id, team.name, team.team_number)}
-                  className="btn-brutal bg-destructive text-destructive-foreground text-sm"
-                >
-                  삭제
-                </button>
+              <div className="flex items-center justify-between mb-3 gap-2">
+                {isEditingName ? (
+                  <>
+                    <div className="flex items-center gap-1 flex-1 min-w-0">
+                      <span className="font-black text-lg shrink-0">{team.team_number}조</span>
+                      <input
+                        autoFocus
+                        value={editingTeamName}
+                        onChange={(e) => setEditingTeamName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleUpdateTeamName(team.id);
+                          if (e.key === 'Escape') setEditingTeamId(null);
+                        }}
+                        className="input-brutal text-sm flex-1 min-w-0"
+                        placeholder="조 이름"
+                      />
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateTeamName(team.id)}
+                        className="btn-brutal text-sm"
+                      >
+                        저장
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingTeamId(null)}
+                        className="btn-brutal bg-muted text-foreground text-sm"
+                      >
+                        취소
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="font-black text-lg flex-1 min-w-0 truncate">{teamLabel}</h3>
+                    <div className="flex gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => startEditTeamName(team.id, team.name)}
+                        className="btn-brutal bg-muted text-foreground text-sm"
+                      >
+                        이름 수정
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTeam(team.id, team.name, team.team_number)}
+                        className="btn-brutal bg-destructive text-destructive-foreground text-sm"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
 
               {team.members.length === 0 ? (

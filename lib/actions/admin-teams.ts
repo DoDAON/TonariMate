@@ -76,6 +76,27 @@ export async function setupTeams(meetingId: string, count: number): Promise<Acti
   return { success: true };
 }
 
+export async function updateTeamName(
+  teamId: string,
+  name: string,
+  meetingId: string
+): Promise<ActionResult> {
+  const trimmed = name.trim();
+  if (!trimmed) return { success: false, error: '조 이름을 입력해주세요' };
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('teams')
+    .update({ name: trimmed })
+    .eq('id', teamId);
+
+  if (error) return { success: false, error: '이름 변경에 실패했습니다' };
+
+  revalidatePath(ROUTES.ADMIN_MEETING_TEAMS(meetingId));
+  return { success: true };
+}
+
 export async function deleteTeam(teamId: string, meetingId: string): Promise<ActionResult> {
   const supabase = await createClient();
 
