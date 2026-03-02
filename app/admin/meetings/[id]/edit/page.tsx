@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { ROUTES } from '@/lib/constants/routes';
 import { Header } from '@/components/layouts/Header';
-import { LogoutButton } from '@/components/features/auth/LogoutButton';
+import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { MeetingForm } from '@/components/features/admin/MeetingForm';
 import { requireAdmin } from '@/lib/queries/admin';
 
@@ -36,7 +36,7 @@ export default async function EditMeetingPage({ params }: EditMeetingPageProps) 
 
   return (
     <div className="min-h-screen noise-overlay">
-      <Header actions={<LogoutButton />} />
+      <Header actions={<HeaderActions />} />
 
       <main className="container mx-auto px-4 py-8">
         <nav className="mb-6">

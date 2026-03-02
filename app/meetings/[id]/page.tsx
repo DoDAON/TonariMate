@@ -2,7 +2,7 @@ import { redirect, notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { ROUTES } from '@/lib/constants/routes';
 import { Header } from '@/components/layouts/Header';
-import { LogoutButton } from '@/components/features/auth/LogoutButton';
+import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { getMeetingDetail } from '@/lib/queries/meetings';
 import { getUserTeamInMeeting } from '@/lib/queries/teams';
 import { getMeetingMissions } from '@/lib/queries/missions';
@@ -43,7 +43,7 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
 
   return (
     <div className="min-h-screen noise-overlay">
-      <Header actions={<LogoutButton />} />
+      <Header actions={<HeaderActions />} />
 
       <main className="container mx-auto px-4 py-8">
         <MeetingInfo meeting={meeting} />

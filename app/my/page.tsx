@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { ROUTES } from '@/lib/constants/routes';
 import { Header } from '@/components/layouts/Header';
-import { LogoutButton } from '@/components/features/auth/LogoutButton';
+import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { ProfileSection } from '@/components/features/auth/ProfileSection';
 import { JoinMeetingForm } from '@/components/features/meetings/JoinMeetingForm';
 import { MeetingList } from '@/components/features/meetings/MeetingList';
@@ -33,7 +33,7 @@ export default async function MyPage() {
 
   return (
     <div className="min-h-screen noise-overlay">
-      <Header actions={<LogoutButton />} />
+      <Header actions={<HeaderActions />} />
 
       <main className="container mx-auto px-4 py-8">
         {/* 프로필 섹션 */}

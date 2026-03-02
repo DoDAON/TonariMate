@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
 import { ROUTES } from '@/lib/constants/routes';
 import { Header } from '@/components/layouts/Header';
-import { LogoutButton } from '@/components/features/auth/LogoutButton';
+import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { formatTeamName } from '@/lib/utils';
 import {
@@ -40,7 +40,7 @@ export default async function TeamPage({ params }: TeamPageProps) {
 
   return (
     <div className="min-h-screen noise-overlay">
-      <Header actions={<LogoutButton />} />
+      <Header actions={<HeaderActions />} />
 
       <main className="container mx-auto px-4 py-8">
         {/* 뒤로가기 */}

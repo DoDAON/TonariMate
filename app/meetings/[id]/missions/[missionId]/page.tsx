@@ -2,7 +2,7 @@ import { redirect, notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { ROUTES } from '@/lib/constants/routes';
 import { Header } from '@/components/layouts/Header';
-import { LogoutButton } from '@/components/features/auth/LogoutButton';
+import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { getMissionDetail, getTeamSubmission } from '@/lib/queries/missions';
 import { getUserTeamInMeeting } from '@/lib/queries/teams';
 import MissionSubmissionForm from '@/components/features/missions/MissionSubmissionForm';
@@ -59,7 +59,7 @@ export default async function MissionPage({ params }: MissionPageProps) {
 
   return (
     <div className="min-h-screen noise-overlay">
-      <Header actions={<LogoutButton />} />
+      <Header actions={<HeaderActions />} />
 
       <main className="container mx-auto px-4 py-8">
         {/* 뒤로가기 */}
