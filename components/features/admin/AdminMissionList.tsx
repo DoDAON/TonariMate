@@ -56,7 +56,7 @@ export function AdminMissionList({ missions, meetingId }: AdminMissionListProps)
                 {formatDate(mission.start_date)} ~ {formatDate(mission.end_date)}
               </p>
             </div>
-            <div className="flex gap-2 ml-4">
+            <div className="flex gap-3 ml-4">
               <Link
                 href={ROUTES.ADMIN_MEETING_MISSION(meetingId, mission.id)}
                 className="btn-brutal bg-muted text-foreground text-sm"

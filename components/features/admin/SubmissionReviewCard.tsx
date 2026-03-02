@@ -118,8 +118,8 @@ export function SubmissionReviewCard({
 
       {/* 심사 액션 */}
       {isPending && (
-        <div className="flex items-center gap-2 pt-1 border-t-2 border-border">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center gap-3 pt-1 border-t-2 border-border">
+          <div className="flex items-center gap-2">
             <label className="text-sm font-bold">PT</label>
             <input
               type="number"

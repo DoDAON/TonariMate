@@ -312,7 +312,7 @@ export function TeamManagement({ meetingId, teams, unassignedMembers }: TeamMana
                         <p className="text-xs text-destructive font-bold">2자 이상 입력해주세요</p>
                       )}
                     </div>
-                    <div className="flex gap-1 shrink-0">
+                    <div className="flex gap-2 shrink-0">
                       <button
                         type="button"
                         onClick={() => handleUpdateTeamName(team.id)}
@@ -333,7 +333,7 @@ export function TeamManagement({ meetingId, teams, unassignedMembers }: TeamMana
                 ) : (
                   <>
                     <h3 className="font-black text-lg flex-1 min-w-0 truncate">{teamLabel}</h3>
-                    <div className="flex gap-1 shrink-0">
+                    <div className="flex gap-2 shrink-0">
                       <button
                         type="button"
                         onClick={() => startEditTeamName(team.id, team.name)}
@@ -390,7 +390,7 @@ export function TeamManagement({ meetingId, teams, unassignedMembers }: TeamMana
                         </span>
 
                         <div
-                          className="flex items-center gap-2"
+                          className="flex items-center gap-3"
                           onPointerDown={(e) => e.stopPropagation()}
                         >
                           {isEditing ? (

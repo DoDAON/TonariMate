@@ -30,7 +30,7 @@ export function InviteCodeDisplay({ meetingId, inviteCode }: InviteCodeDisplayPr
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-4">
       <code className="font-mono text-2xl font-black tracking-widest bg-muted px-4 py-2 border-2 border-border">
         {inviteCode}
       </code>
