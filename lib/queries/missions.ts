@@ -75,6 +75,8 @@ export interface TeamSubmission {
   team_id: string;
   submitted_by: string;
   image_url: string;
+  note: string | null;
+  completed_at: string | null;
   status: 'pending' | 'approved' | 'rejected';
   points_awarded: number;
   reviewed_at: string | null;
@@ -90,7 +92,7 @@ export async function getTeamSubmission(
   const { data, error } = await supabase
     .from('mission_submissions')
     .select(
-      'id, mission_id, team_id, submitted_by, image_url, status, points_awarded, reviewed_at, created_at'
+      'id, mission_id, team_id, submitted_by, image_url, note, completed_at, status, points_awarded, reviewed_at, created_at'
     )
     .eq('mission_id', missionId)
     .eq('team_id', teamId)

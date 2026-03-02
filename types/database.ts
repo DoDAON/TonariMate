@@ -217,6 +217,8 @@ export interface Database {
           team_id: string;
           submitted_by: string;
           image_url: string;
+          note: string | null;
+          completed_at: string | null;
           status: 'pending' | 'approved' | 'rejected';
           points_awarded: number;
           reviewed_by: string | null;
@@ -229,6 +231,8 @@ export interface Database {
           team_id: string;
           submitted_by: string;
           image_url: string;
+          note?: string | null;
+          completed_at?: string | null;
           status?: 'pending' | 'approved' | 'rejected';
           points_awarded?: number;
           reviewed_by?: string | null;
@@ -241,6 +245,8 @@ export interface Database {
           team_id?: string;
           submitted_by?: string;
           image_url?: string;
+          note?: string | null;
+          completed_at?: string | null;
           status?: 'pending' | 'approved' | 'rejected';
           points_awarded?: number;
           reviewed_by?: string | null;

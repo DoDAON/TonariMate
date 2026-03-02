@@ -19,10 +19,15 @@ export default function MissionSubmissionForm({
 }: MissionSubmissionFormProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [note, setNote] = useState('');
+  const [completedAt, setCompletedAt] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const noteLength = note.trim().length;
+  const noteInvalid = noteLength > 0 && noteLength < 5;
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
@@ -38,11 +43,14 @@ export default function MissionSubmissionForm({
       setError('이미지를 선택해주세요');
       return;
     }
+    if (noteInvalid) {
+      setError('메모는 5자 이상 입력하거나 비워두세요');
+      return;
+    }
 
     setLoading(true);
     setError(null);
 
-    // 1. 이미지 업로드
     const uploadResult = await uploadMissionImage(file, meetingId, missionId, teamId);
     if (!uploadResult.success || !uploadResult.url) {
       setError(uploadResult.error ?? '업로드 실패');
@@ -50,8 +58,15 @@ export default function MissionSubmissionForm({
       return;
     }
 
-    // 2. 제출 INSERT
-    const submitResult = await submitMission(missionId, meetingId, teamId, userId, uploadResult.url);
+    const submitResult = await submitMission(
+      missionId,
+      meetingId,
+      teamId,
+      userId,
+      uploadResult.url,
+      note || undefined,
+      completedAt || undefined
+    );
     if (!submitResult.success) {
       setError(submitResult.error ?? '제출 실패');
       setLoading(false);
@@ -80,6 +95,18 @@ export default function MissionSubmissionForm({
         className="hidden"
       />
 
+      {/* 이미지 선택 */}
+      <div>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={loading}
+          className="btn-brutal bg-muted text-foreground"
+        >
+          {file ? '다른 이미지 선택' : '이미지 선택'}
+        </button>
+      </div>
+
       {preview && (
         <div className="border-2 border-border p-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -91,27 +118,44 @@ export default function MissionSubmissionForm({
         </div>
       )}
 
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
-          disabled={loading}
-          className="btn-brutal bg-muted text-foreground"
-        >
-          {file ? '다른 이미지 선택' : '이미지 선택'}
-        </button>
+      {/* 수행 날짜 (선택) */}
+      <div className="space-y-1">
+        <label className="text-sm font-bold">수행 날짜 <span className="text-muted-foreground font-normal">(선택)</span></label>
+        <input
+          type="date"
+          value={completedAt}
+          onChange={(e) => setCompletedAt(e.target.value)}
+          className="input-brutal w-full"
+        />
+      </div>
 
-        {file && (
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={loading}
-            className="btn-brutal"
-          >
-            {loading ? '제출 중...' : '제출하기'}
-          </button>
+      {/* 메모 (선택, 최소 5자) */}
+      <div className="space-y-1">
+        <label className="text-sm font-bold">
+          메모 <span className="text-muted-foreground font-normal">(선택 · 입력 시 5자 이상)</span>
+        </label>
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="미션 수행에 대한 메모를 남겨주세요"
+          rows={3}
+          className="input-brutal w-full resize-none"
+        />
+        {noteInvalid && (
+          <p className="text-xs text-destructive font-bold">5자 이상 입력하거나 비워두세요 ({noteLength}자)</p>
         )}
       </div>
+
+      {file && (
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={loading || noteInvalid}
+          className="btn-brutal w-full disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {loading ? '제출 중...' : '제출하기'}
+        </button>
+      )}
 
       {error && (
         <p className="text-sm text-destructive font-bold">{error}</p>

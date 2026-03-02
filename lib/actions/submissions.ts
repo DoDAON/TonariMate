@@ -14,7 +14,9 @@ export async function submitMission(
   meetingId: string,
   teamId: string,
   userId: string,
-  imageUrl: string
+  imageUrl: string,
+  note?: string,
+  completedAt?: string
 ): Promise<SubmitMissionResult> {
   const supabase = await createClient();
 
@@ -42,6 +44,8 @@ export async function submitMission(
       team_id: teamId,
       submitted_by: userId,
       image_url: imageUrl,
+      note: note?.trim() || null,
+      completed_at: completedAt || null,
     });
 
   if (insertError) {

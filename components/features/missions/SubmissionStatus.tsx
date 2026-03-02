@@ -42,6 +42,25 @@ export default function SubmissionStatus({ submission }: SubmissionStatusProps) 
         />
       </div>
 
+      {/* 수행 날짜 */}
+      {submission.completed_at && (
+        <p className="text-xs text-muted-foreground">
+          수행일:{' '}
+          {new Date(submission.completed_at).toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
+        </p>
+      )}
+
+      {/* 메모 */}
+      {submission.note && (
+        <p className="text-sm border-l-2 border-border pl-3 text-muted-foreground">
+          {submission.note}
+        </p>
+      )}
+
       {/* 제출일 */}
       <p className="text-xs text-muted-foreground">
         {submittedDate} 제출

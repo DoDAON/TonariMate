@@ -9,6 +9,8 @@ import { formatTeamName } from '@/lib/utils';
 export interface SubmissionForReview {
   id: string;
   image_url: string;
+  note: string | null;
+  completed_at: string | null;
   status: 'pending' | 'approved' | 'rejected';
   points_awarded: number;
   created_at: string;
@@ -113,6 +115,18 @@ export function SubmissionReviewCard({
           sizes="(max-width: 768px) 100vw, 50vw"
         />
       </div>
+
+      {submission.completed_at && (
+        <p className="text-xs text-muted-foreground">
+          수행일: {new Date(submission.completed_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>
+      )}
+
+      {submission.note && (
+        <p className="text-sm border-l-2 border-border pl-3 text-muted-foreground">
+          {submission.note}
+        </p>
+      )}
 
       <p className="text-xs text-muted-foreground font-mono">{formatDate(submission.created_at)}</p>
 

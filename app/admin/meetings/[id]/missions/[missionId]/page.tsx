@@ -50,7 +50,7 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
 
   const { data: submissions } = await supabase
     .from('mission_submissions')
-    .select('id, team_id, image_url, status, points_awarded, created_at')
+    .select('id, team_id, image_url, note, completed_at, status, points_awarded, created_at')
     .eq('mission_id', missionId);
 
   const submissionMap = new Map(submissions?.map((s) => [s.team_id, s]) ?? []);
@@ -64,6 +64,8 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
       return {
         id: s.id,
         image_url: s.image_url,
+        note: s.note,
+        completed_at: s.completed_at,
         status: s.status,
         points_awarded: s.points_awarded,
         created_at: s.created_at,
