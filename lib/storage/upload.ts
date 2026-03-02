@@ -24,7 +24,8 @@ export async function uploadMissionImage(
   }
 
   const ext = file.name.split('.').pop() ?? 'jpg';
-  const path = `${meetingId}/${missionId}/${teamId}.${ext}`;
+  // teamId를 별도 폴더로 분리해야 Storage RLS의 foldername()[3]이 teamId를 올바르게 파싱함
+  const path = `${meetingId}/${missionId}/${teamId}/image.${ext}`;
 
   const supabase = createClient();
 
