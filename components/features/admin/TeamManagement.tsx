@@ -359,7 +359,10 @@ export function TeamManagement({ meetingId, teams, unassignedMembers }: TeamMana
                               )}
                               <button
                                 type="button"
-                                onClick={() => removeMember(member.team_member_id, meetingId)}
+                                onClick={async () => {
+                                  const result = await removeMember(member.team_member_id, meetingId);
+                                  if (!result.success) toast.error(result.error ?? '멤버 제거에 실패했습니다');
+                                }}
                                 className="text-sm text-destructive font-bold hover:underline"
                               >
                                 제거
