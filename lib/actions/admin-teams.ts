@@ -155,6 +155,20 @@ export async function removeMember(teamMemberId: string, meetingId: string): Pro
 export async function kickMember(userId: string, meetingId: string): Promise<ActionResult> {
   const supabase = await createClient();
 
+  // 해당 모임의 팀 ID 목록 조회
+  const { data: teamRows } = await supabase
+    .from('teams')
+    .select('id')
+    .eq('meeting_id', meetingId);
+
+  const teamIds = (teamRows ?? []).map((t) => t.id);
+
+  // 팀 배정 제거
+  if (teamIds.length > 0) {
+    await supabase.from('team_members').delete().eq('user_id', userId).in('team_id', teamIds);
+  }
+
+  // 모임 멤버십 제거
   const { error } = await supabase
     .from('meeting_members')
     .delete()
