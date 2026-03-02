@@ -6,6 +6,7 @@ export interface LeaderboardTeam {
   team_number: number;
   total_points: number;
   member_count: number;
+  members: { name: string; avatar_url: string | null }[];
 }
 
 export async function getTeamLeaderboard(
@@ -21,31 +22,26 @@ export async function getTeamLeaderboard(
 
   if (error || !teams) return [];
 
-  // 각 팀의 멤버 수 조회
   const teamIds = teams.map((t) => t.id);
-
   if (teamIds.length === 0) return [];
 
-  const { data: memberCounts, error: mcError } = await supabase
+  const { data: teamMembers } = await supabase
     .from('team_members')
-    .select('team_id')
+    .select('team_id, users (name, avatar_url)')
     .in('team_id', teamIds);
 
-  if (mcError || !memberCounts) {
-    // 멤버 수 없이 반환
-    return teams.map((t) => ({ ...t, member_count: 0 }));
+  const memberMap = new Map<string, { name: string; avatar_url: string | null }[]>();
+  for (const row of teamMembers ?? []) {
+    if (!row.users) continue;
+    const list = memberMap.get(row.team_id) ?? [];
+    list.push({ name: row.users.name, avatar_url: row.users.avatar_url });
+    memberMap.set(row.team_id, list);
   }
 
-  // team_id별 카운트 집계
-  const countMap = new Map<string, number>();
-  for (const row of memberCounts) {
-    countMap.set(row.team_id, (countMap.get(row.team_id) ?? 0) + 1);
-  }
-
-  return teams.map((t) => ({
-    ...t,
-    member_count: countMap.get(t.id) ?? 0,
-  }));
+  return teams.map((t) => {
+    const members = memberMap.get(t.id) ?? [];
+    return { ...t, member_count: members.length, members };
+  });
 }
 
 // --- 포인트 히스토리 ---
