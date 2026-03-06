@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { uploadAvatarImage } from '@/lib/storage/upload';
+import { ImageCropModal } from '@/components/features/ImageCropModal';
 
 interface ProfileEditFormProps {
   userId: string;
@@ -31,13 +32,21 @@ export function ProfileEditForm({
   // 아바타
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [cropSource, setCropSource] = useState<File | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
+    setCropSource(file);
+    e.target.value = '';
+  }
+
+  function handleCropConfirm(blob: Blob) {
+    const croppedFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+    setAvatarFile(croppedFile);
+    setAvatarPreview(URL.createObjectURL(blob));
+    setCropSource(null);
   }
 
   const studentIdInvalid = studentId.trim().length > 0 && studentId.trim().length !== 8;
@@ -102,6 +111,14 @@ export function ProfileEditForm({
   const displayAvatar = avatarPreview ?? initialAvatarUrl;
 
   return (
+    <>
+    {cropSource && (
+      <ImageCropModal
+        file={cropSource}
+        onConfirm={handleCropConfirm}
+        onCancel={() => setCropSource(null)}
+      />
+    )}
     <section className="card-brutal">
       <h2 className="text-lg font-bold uppercase mb-4">프로필 수정</h2>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -119,10 +136,10 @@ export function ProfileEditForm({
             <img
               src={displayAvatar}
               alt="프로필 사진"
-              className="w-16 h-16 border-2 border-foreground object-cover"
+              className="w-28 h-28 border-2 border-foreground object-cover"
             />
           ) : (
-            <div className="w-16 h-16 border-2 border-foreground bg-muted flex items-center justify-center text-muted-foreground text-xs">
+            <div className="w-28 h-28 border-2 border-foreground bg-muted flex items-center justify-center text-muted-foreground text-sm">
               사진
             </div>
           )}
@@ -195,5 +212,6 @@ export function ProfileEditForm({
         </div>
       </form>
     </section>
+    </>
   );
 }

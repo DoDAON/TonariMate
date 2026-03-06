@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { uploadAvatarImage } from '@/lib/storage/upload';
+import { ImageCropModal } from '@/components/features/ImageCropModal';
 import { ROUTES } from '@/lib/constants/routes';
 
 export default function SignupPage() {
@@ -17,6 +18,7 @@ export default function SignupPage() {
   const [googleAvatarUrl, setGoogleAvatarUrl] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [cropSource, setCropSource] = useState<File | null>(null); // 크롭 모달용 원본
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -31,8 +33,17 @@ export default function SignupPage() {
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
+    // 파일 선택 시 크롭 모달 열기
+    setCropSource(file);
+    // input 초기화 (같은 파일 재선택 가능하게)
+    e.target.value = '';
+  }
+
+  function handleCropConfirm(blob: Blob) {
+    const croppedFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+    setAvatarFile(croppedFile);
+    setAvatarPreview(URL.createObjectURL(blob));
+    setCropSource(null);
   }
 
   const studentIdInvalid = studentId.trim().length > 0 && studentId.trim().length !== 8;
@@ -98,6 +109,14 @@ export default function SignupPage() {
   const displayAvatar = avatarPreview ?? googleAvatarUrl;
 
   return (
+    <>
+    {cropSource && (
+      <ImageCropModal
+        file={cropSource}
+        onConfirm={handleCropConfirm}
+        onCancel={() => setCropSource(null)}
+      />
+    )}
     <div className="min-h-screen noise-overlay flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
@@ -124,10 +143,10 @@ export default function SignupPage() {
               <img
                 src={displayAvatar}
                 alt="프로필 사진"
-                className="w-20 h-20 border-2 border-foreground object-cover"
+                className="w-28 h-28 border-2 border-foreground object-cover"
               />
             ) : (
-              <div className="w-20 h-20 border-2 border-foreground bg-muted flex items-center justify-center text-muted-foreground text-sm">
+              <div className="w-28 h-28 border-2 border-foreground bg-muted flex items-center justify-center text-muted-foreground text-sm">
                 사진
               </div>
             )}
@@ -191,5 +210,6 @@ export default function SignupPage() {
         </form>
       </div>
     </div>
+    </>
   );
 }
