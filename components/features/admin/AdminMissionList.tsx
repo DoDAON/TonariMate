@@ -37,11 +37,11 @@ export function AdminMissionList({ missions, meetingId }: AdminMissionListProps)
       {missions.map((mission) => {
         const effectiveStatus = getEffectiveMissionStatus(mission.status, mission.end_date);
         return (
-          <div key={mission.id} className="card-brutal flex items-center justify-between">
-            <div className="flex-1">
+          <div key={mission.id} className="card-brutal flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <span
-                  className={`px-2 py-0.5 text-xs font-bold uppercase border-2 border-border ${
+                  className={`px-2 py-0.5 text-xs font-bold uppercase border-2 border-border shrink-0 ${
                     effectiveStatus === 'active'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-muted-foreground'
@@ -51,28 +51,28 @@ export function AdminMissionList({ missions, meetingId }: AdminMissionListProps)
                 </span>
                 <span className="font-mono text-sm">{mission.points}pt</span>
               </div>
-              <h3 className="font-black text-lg">{mission.title}</h3>
+              <h3 className="font-black text-lg truncate">{mission.title}</h3>
               <p className="text-sm text-muted-foreground font-mono">
                 {formatDate(mission.start_date)} ~ {formatDate(mission.end_date)}
               </p>
             </div>
-            <div className="flex gap-3 ml-4">
+            <div className="flex gap-2 shrink-0">
               <Link
                 href={ROUTES.ADMIN_MEETING_MISSION(meetingId, mission.id)}
-                className="btn-brutal bg-muted text-foreground text-sm"
+                className="btn-brutal bg-muted text-foreground text-sm flex-1 sm:flex-none text-center"
               >
                 상세
               </Link>
               <Link
                 href={ROUTES.ADMIN_MEETING_MISSION_EDIT(meetingId, mission.id)}
-                className="btn-brutal bg-muted text-foreground text-sm"
+                className="btn-brutal bg-muted text-foreground text-sm flex-1 sm:flex-none text-center"
               >
                 수정
               </Link>
               <button
                 type="button"
                 onClick={() => handleDelete(mission.id, mission.title)}
-                className="btn-brutal bg-destructive text-destructive-foreground text-sm"
+                className="btn-brutal bg-destructive text-destructive-foreground text-sm flex-1 sm:flex-none"
               >
                 삭제
               </button>

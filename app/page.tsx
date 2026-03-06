@@ -26,10 +26,33 @@ export default async function Home() {
           <Link href={user ? ROUTES.MY : ROUTES.LOGIN} className="btn-brutal touch-target">
             시작하기
           </Link>
+
+          {/* PWA 설치 안내 */}
+          <div className="text-sm text-muted-foreground space-y-1.5 max-w-xs">
+            <p className="font-bold uppercase tracking-wide text-foreground">홈 화면에 설치하기</p>
+            <p>
+              <span className="font-semibold">Android</span>
+              {' '}— Chrome 메뉴(⋮) → <span className="font-mono">홈 화면에 추가</span>
+            </p>
+            <p>
+              <span className="font-semibold">iOS</span>
+              {' '}— Safari 공유 버튼(□↑) → <span className="font-mono">홈 화면에 추가</span>
+            </p>
+          </div>
+        </section>
+
+        {/* 내 모임 섹션 */}
+        <section className="max-w-4xl mx-auto mb-16">
+          <h2 className="text-2xl font-bold uppercase mb-6">내 모임</h2>
+          {user ? (
+            <MeetingList meetings={meetings} />
+          ) : (
+            <EmptyState message="로그인 후 모임을 확인할 수 있습니다." />
+          )}
         </section>
 
         {/* Features Preview */}
-        <section className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto mb-16">
+        <section className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
           <div className="card-brutal">
             <h3 className="text-lg font-bold uppercase mb-2">미션</h3>
             <p className="text-muted-foreground text-sm">
@@ -48,16 +71,6 @@ export default async function Home() {
               조원들과 함께 미션을 수행하고 기록을 관리하세요
             </p>
           </div>
-        </section>
-
-        {/* 내 모임 섹션 */}
-        <section className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold uppercase mb-6">내 모임</h2>
-          {user ? (
-            <MeetingList meetings={meetings} />
-          ) : (
-            <EmptyState message="로그인 후 모임을 확인할 수 있습니다." />
-          )}
         </section>
       </main>
 

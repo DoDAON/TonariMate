@@ -46,6 +46,15 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
       <Header actions={<HeaderActions />} />
 
       <main className="container mx-auto px-4 py-8">
+        <nav className="mb-6">
+          <Link
+            href={ROUTES.MY}
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          >
+            ← 내 모임으로 돌아가기
+          </Link>
+        </nav>
+
         <MeetingInfo meeting={meeting} />
 
         {/* 내 조 */}
@@ -64,16 +73,16 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
           )}
         </section>
 
-        {/* 리더보드 */}
-        <section className="mt-8">
-          <h2 className="text-2xl font-bold uppercase mb-6">전체 조</h2>
-          <LeaderboardSection meetingId={id} currentTeamId={team?.id} />
-        </section>
-
         {/* 미션 */}
         <section className="mt-8">
           <h2 className="text-2xl font-bold uppercase mb-6">미션</h2>
           <MissionSection missions={missions} meetingId={id} />
+        </section>
+
+        {/* 리더보드 */}
+        <section className="mt-8">
+          <h2 className="text-2xl font-bold uppercase mb-6">전체 조</h2>
+          <LeaderboardSection meetingId={id} currentTeamId={team?.id} />
         </section>
       </main>
     </div>
