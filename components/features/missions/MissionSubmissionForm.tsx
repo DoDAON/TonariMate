@@ -43,6 +43,10 @@ export default function MissionSubmissionForm({
       setError('이미지를 선택해주세요');
       return;
     }
+    if (!completedAt) {
+      setError('수행 날짜를 입력해주세요');
+      return;
+    }
     if (noteInvalid) {
       setError('메모는 5자 이상 입력하거나 비워두세요');
       return;
@@ -118,14 +122,17 @@ export default function MissionSubmissionForm({
         </div>
       )}
 
-      {/* 수행 날짜 (선택) */}
+      {/* 수행 날짜 (필수) */}
       <div className="space-y-1">
-        <label className="text-sm font-bold">수행 날짜 <span className="text-muted-foreground font-normal">(선택)</span></label>
+        <label className="text-sm font-bold">
+          수행 날짜 <span className="text-destructive">*</span>
+        </label>
         <input
           type="date"
           value={completedAt}
           onChange={(e) => setCompletedAt(e.target.value)}
           className="input-brutal w-full"
+          required
         />
       </div>
 
@@ -150,7 +157,7 @@ export default function MissionSubmissionForm({
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={loading || noteInvalid}
+          disabled={loading || noteInvalid || !completedAt}
           className="btn-brutal w-full disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {loading ? '제출 중...' : '제출하기'}
