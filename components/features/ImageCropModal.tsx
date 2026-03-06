@@ -10,7 +10,6 @@ interface ImageCropModalProps {
 
 const CANVAS_SIZE = 300;
 const OUTPUT_SIZE = 400;
-const MIN_SCALE_RATIO = 1; // 이미지가 항상 캔버스 전체를 덮어야 함
 const MAX_SCALE_MULTIPLIER = 5;
 
 interface CropState {
@@ -23,15 +22,16 @@ export function ImageCropModal({ file, onConfirm, onCancel }: ImageCropModalProp
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const stateRef = useRef<CropState>({ scale: 1, offsetX: 0, offsetY: 0 });
+  const minScaleRef = useRef<number>(1);
 
-  // 포인터 추적 (drag + pinch)
-  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const lastPinchDistRef = useRef<number | null>(null);
+  // 단일 포인터 드래그용
+  const pointerRef = useRef<{ id: number; x: number; y: number } | null>(null);
 
   const [loaded, setLoaded] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [sliderValue, setSliderValue] = useState(0); // 0~100
 
-  // CSS px → canvas px 변환 비율 계산
+  // CSS px → canvas px 변환 비율
   function getCssScale(): number {
     const canvas = canvasRef.current;
     if (!canvas) return 1;
@@ -39,8 +39,7 @@ export function ImageCropModal({ file, onConfirm, onCancel }: ImageCropModalProp
     return CANVAS_SIZE / rect.width;
   }
 
-  // 이미지가 캔버스를 벗어나지 않도록 clamp
-  function clampOffset(offsetX: number, offsetY: number, scale: number): { offsetX: number; offsetY: number } {
+  function clampOffset(offsetX: number, offsetY: number, scale: number) {
     const img = imgRef.current;
     if (!img) return { offsetX, offsetY };
     const iw = img.naturalWidth * scale;
@@ -62,24 +61,25 @@ export function ImageCropModal({ file, onConfirm, onCancel }: ImageCropModalProp
     ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
     ctx.drawImage(img, offsetX, offsetY, img.naturalWidth * scale, img.naturalHeight * scale);
 
-    // 테두리 강조
     ctx.strokeStyle = 'rgba(0,0,0,0.6)';
     ctx.lineWidth = 2;
     ctx.strokeRect(1, 1, CANVAS_SIZE - 2, CANVAS_SIZE - 2);
   }, []);
 
-  // 이미지 로드 + 초기 scale 계산
+  // 이미지 로드
   useEffect(() => {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
       imgRef.current = img;
       const minScale = Math.max(CANVAS_SIZE / img.naturalWidth, CANVAS_SIZE / img.naturalHeight);
+      minScaleRef.current = minScale;
       stateRef.current = {
         scale: minScale,
         offsetX: (CANVAS_SIZE - img.naturalWidth * minScale) / 2,
         offsetY: (CANVAS_SIZE - img.naturalHeight * minScale) / 2,
       };
+      setSliderValue(0);
       setLoaded(true);
     };
     img.src = url;
@@ -99,61 +99,48 @@ export function ImageCropModal({ file, onConfirm, onCancel }: ImageCropModalProp
     return () => window.removeEventListener('keydown', onKey);
   }, [onCancel]);
 
-  // ── Pointer 이벤트 핸들러 ──
+  // ── 드래그 (단일 포인터만) ──
 
   function handlePointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
     e.preventDefault();
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    lastPinchDistRef.current = null;
+    pointerRef.current = { id: e.pointerId, x: e.clientX, y: e.clientY };
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
     e.preventDefault();
-    const pointers = pointersRef.current;
-    if (!pointers.has(e.pointerId)) return;
-
-    const prev = pointers.get(e.pointerId)!;
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const p = pointerRef.current;
+    if (!p || p.id !== e.pointerId) return;
 
     const cssScale = getCssScale();
+    const dx = (e.clientX - p.x) * cssScale;
+    const dy = (e.clientY - p.y) * cssScale;
+    pointerRef.current = { id: e.pointerId, x: e.clientX, y: e.clientY };
 
-    if (pointers.size === 1) {
-      // 드래그 이동
-      const dx = (e.clientX - prev.x) * cssScale;
-      const dy = (e.clientY - prev.y) * cssScale;
-      const { scale, offsetX, offsetY } = stateRef.current;
-      const clamped = clampOffset(offsetX + dx, offsetY + dy, scale);
-      stateRef.current = { scale, ...clamped };
-      draw();
-    } else if (pointers.size === 2) {
-      // 핀치 줌
-      const pts = Array.from(pointers.values());
-      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-      if (lastPinchDistRef.current !== null) {
-        applyZoom(dist / lastPinchDistRef.current);
-      }
-      lastPinchDistRef.current = dist;
-    }
+    const { scale, offsetX, offsetY } = stateRef.current;
+    const clamped = clampOffset(offsetX + dx, offsetY + dy, scale);
+    stateRef.current = { scale, ...clamped };
+    draw();
   }
 
-  function handlePointerUp(e: React.PointerEvent<HTMLCanvasElement>) {
-    pointersRef.current.delete(e.pointerId);
-    if (pointersRef.current.size < 2) lastPinchDistRef.current = null;
+  function handlePointerUp() {
+    pointerRef.current = null;
   }
 
-  function handleWheel(e: React.WheelEvent<HTMLCanvasElement>) {
-    e.preventDefault();
-    applyZoom(e.deltaY > 0 ? 0.9 : 1.1);
-  }
+  // ── 슬라이더 줌 ──
 
-  function applyZoom(ratio: number) {
+  function handleSliderChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = Number(e.target.value);
+    setSliderValue(val);
+
     const img = imgRef.current;
     if (!img) return;
-    const minScale = Math.max(CANVAS_SIZE / img.naturalWidth, CANVAS_SIZE / img.naturalHeight);
+
+    const minScale = minScaleRef.current;
     const maxScale = minScale * MAX_SCALE_MULTIPLIER;
+    const newScale = minScale + (val / 100) * (maxScale - minScale);
+
     const { scale, offsetX, offsetY } = stateRef.current;
-    const newScale = Math.max(minScale * MIN_SCALE_RATIO, Math.min(scale * ratio, maxScale));
     // 캔버스 중앙 기준 줌
     const cx = CANVAS_SIZE / 2;
     const cy = CANVAS_SIZE / 2;
@@ -164,14 +151,14 @@ export function ImageCropModal({ file, onConfirm, onCancel }: ImageCropModalProp
     draw();
   }
 
+  // ── 크롭 확정 ──
+
   function handleConfirm() {
     const img = imgRef.current;
     if (!img) return;
     setConfirming(true);
 
     const { scale, offsetX, offsetY } = stateRef.current;
-
-    // 원본 이미지에서 크롭할 영역 계산
     const srcX = -offsetX / scale;
     const srcY = -offsetY / scale;
     const srcSize = CANVAS_SIZE / scale;
@@ -199,8 +186,9 @@ export function ImageCropModal({ file, onConfirm, onCancel }: ImageCropModalProp
     >
       <div className="card-brutal w-full max-w-sm">
         <h3 className="text-lg font-black uppercase mb-1">사진 자르기</h3>
-        <p className="text-xs text-muted-foreground mb-3">드래그로 위치 조정 · 스크롤/핀치로 확대축소</p>
+        <p className="text-xs text-muted-foreground mb-3">드래그로 위치 조정 · 슬라이더로 확대축소</p>
 
+        {/* 캔버스 */}
         <div className="flex justify-center">
           <canvas
             ref={canvasRef}
@@ -212,10 +200,24 @@ export function ImageCropModal({ file, onConfirm, onCancel }: ImageCropModalProp
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
-            onWheel={handleWheel}
           />
         </div>
 
+        {/* 줌 슬라이더 */}
+        <div className="mt-4">
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={sliderValue}
+            onChange={handleSliderChange}
+            disabled={!loaded}
+            className="w-full accent-foreground cursor-pointer disabled:opacity-40"
+            style={{ height: '28px' }}
+          />
+        </div>
+
+        {/* 버튼 */}
         <div className="flex gap-3 mt-4">
           <button
             type="button"
