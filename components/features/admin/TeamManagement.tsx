@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { toast } from 'sonner';
-import { setupTeams, deleteTeam, updateTeamName, assignMember, removeMember, moveMember, kickMember } from '@/lib/actions/admin-teams';
+import { setupTeams, updateTeamName, assignMember, removeMember, moveMember, kickMember } from '@/lib/actions/admin-teams';
 import { formatTeamName } from '@/lib/utils';
 import type { AdminTeam, UnassignedMember } from '@/lib/queries/admin-teams';
 
@@ -139,13 +139,6 @@ export function TeamManagement({ meetingId, teams, unassignedMembers }: TeamMana
   async function handleMoveViaSelect(teamMemberId: string, newTeamId: string) {
     setEditingMemberId(null);
     await moveMember(teamMemberId, newTeamId, meetingId);
-  }
-
-  async function handleDeleteTeam(teamId: string, teamName: string, teamNumber: number) {
-    const label = formatTeamName(teamNumber, teamName);
-    if (!confirm(`"${label}"을 삭제하시겠습니까? 멤버도 미배정 상태가 됩니다.`)) return;
-    const result = await deleteTeam(teamId, meetingId);
-    if (!result.success) toast.error(result.error ?? '조 삭제에 실패했습니다');
   }
 
   function startEditTeamName(teamId: string, currentName: string) {
@@ -355,13 +348,6 @@ export function TeamManagement({ meetingId, teams, unassignedMembers }: TeamMana
                         className="btn-brutal bg-muted text-foreground text-sm"
                       >
                         이름 수정
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteTeam(team.id, team.name, team.team_number)}
-                        className="btn-brutal bg-destructive text-destructive-foreground text-sm"
-                      >
-                        삭제
                       </button>
                     </div>
                   </>
