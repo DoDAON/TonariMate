@@ -94,29 +94,56 @@ export async function updateMeeting(
   return { success: true };
 }
 
-export async function toggleMeetingActive(meetingId: string): Promise<ActionResult> {
+export async function endMeeting(meetingId: string): Promise<ActionResult> {
   const supabase = await createClient();
 
-  const { data: meeting, error: fetchError } = await supabase
+  const { error } = await supabase
     .from('meetings')
-    .select('is_active')
-    .eq('id', meetingId)
-    .single();
+    .update({ is_active: false })
+    .eq('id', meetingId);
 
-  if (fetchError || !meeting) {
-    return { success: false, error: '모임을 찾을 수 없습니다' };
+  if (error) {
+    return { success: false, error: '모임 종료에 실패했습니다' };
+  }
+
+  revalidatePath(ROUTES.ADMIN_MEETING(meetingId));
+  revalidatePath(ROUTES.ADMIN);
+
+  return { success: true };
+}
+
+export async function deleteMeeting(meetingId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+
+  // Storage 파일 정리 (best-effort: 실패해도 DB 삭제 진행)
+  try {
+    const { data: folders } = await supabase.storage
+      .from('mission-images')
+      .list(meetingId);
+    if (folders && folders.length > 0) {
+      for (const folder of folders) {
+        const { data: files } = await supabase.storage
+          .from('mission-images')
+          .list(`${meetingId}/${folder.name}`);
+        if (files && files.length > 0) {
+          const paths = files.map((f) => `${meetingId}/${folder.name}/${f.name}`);
+          await supabase.storage.from('mission-images').remove(paths);
+        }
+      }
+    }
+  } catch {
+    // Storage 정리 실패 시 무시하고 DB 삭제 진행
   }
 
   const { error } = await supabase
     .from('meetings')
-    .update({ is_active: !meeting.is_active })
+    .delete()
     .eq('id', meetingId);
 
   if (error) {
-    return { success: false, error: '상태 변경에 실패했습니다' };
+    return { success: false, error: '모임 삭제에 실패했습니다' };
   }
 
-  revalidatePath(ROUTES.ADMIN_MEETING(meetingId));
   revalidatePath(ROUTES.ADMIN);
 
   return { success: true };

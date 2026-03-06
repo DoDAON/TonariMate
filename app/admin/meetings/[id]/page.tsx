@@ -6,7 +6,7 @@ import { Header } from '@/components/layouts/Header';
 import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { requireAdmin } from '@/lib/queries/admin';
 import { InviteCodeDisplay } from '@/components/features/admin/InviteCodeDisplay';
-import { ToggleActiveButton } from '@/components/features/admin/ToggleActiveButton';
+import { MeetingActionButtons } from '@/components/features/admin/MeetingActionButtons';
 
 interface AdminMeetingPageProps {
   params: Promise<{ id: string }>;
@@ -59,9 +59,17 @@ export default async function AdminMeetingPage({ params }: AdminMeetingPageProps
 
         {/* 모임 정보 */}
         <div className="card-brutal mb-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-start justify-between mb-4 gap-3">
             <h1 className="text-3xl font-black uppercase tracking-tight">{meeting.name}</h1>
-            <ToggleActiveButton meetingId={id} isActive={meeting.is_active} />
+            <span
+              className={`px-2 py-0.5 text-xs font-bold uppercase border-2 border-border shrink-0 ${
+                meeting.is_active
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {meeting.is_active ? '진행 중' : '종료'}
+            </span>
           </div>
 
           <p className="text-sm text-muted-foreground font-mono mb-2">{meeting.period}</p>
@@ -84,7 +92,7 @@ export default async function AdminMeetingPage({ params }: AdminMeetingPageProps
         </div>
 
         {/* 관리 네비게이션 */}
-        <div className="grid gap-3">
+        <div className="grid gap-3 mb-6">
           {navItems.map((item) => (
             <Link key={item.href} href={item.href}>
               <div className="card-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all cursor-pointer flex items-center justify-between">
@@ -93,6 +101,16 @@ export default async function AdminMeetingPage({ params }: AdminMeetingPageProps
               </div>
             </Link>
           ))}
+        </div>
+
+        {/* 모임 종료 / 삭제 */}
+        <div className="card-brutal border-destructive">
+          <h2 className="text-lg font-black uppercase tracking-tight mb-3">위험 구역</h2>
+          <MeetingActionButtons
+            meetingId={id}
+            meetingName={meeting.name}
+            isActive={meeting.is_active}
+          />
         </div>
       </main>
     </div>

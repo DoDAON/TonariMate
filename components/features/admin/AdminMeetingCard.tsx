@@ -21,7 +21,7 @@ export function AdminMeetingCard({ meeting }: AdminMeetingCardProps) {
                 : 'bg-muted text-muted-foreground'
             }`}
           >
-            {meeting.is_active ? '활성' : '비활성'}
+            {meeting.is_active ? '진행 중' : '종료'}
           </span>
         </div>
 

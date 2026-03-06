@@ -45,11 +45,16 @@ export default async function MissionPage({ params }: MissionPageProps) {
     redirect(ROUTES.LOGIN);
   }
 
-  const mission = await getMissionDetail(missionId, meetingId);
+  const [mission, meetingResult] = await Promise.all([
+    getMissionDetail(missionId, meetingId),
+    supabase.from('meetings').select('is_active').eq('id', meetingId).single(),
+  ]);
 
   if (!mission) {
     notFound();
   }
+
+  const meetingEnded = !meetingResult.data?.is_active;
 
   const team = await getUserTeamInMeeting(meetingId, user.id);
   const submission = team ? await getTeamSubmission(missionId, team.id) : null;
@@ -126,7 +131,11 @@ export default async function MissionPage({ params }: MissionPageProps) {
             미션 제출
           </h2>
 
-          {!team ? (
+          {meetingEnded ? (
+            <p className="text-sm text-muted-foreground">
+              종료된 모임입니다. 미션 제출이 불가합니다.
+            </p>
+          ) : !team ? (
             <p className="text-sm text-muted-foreground">
               팀 배정 후 제출 가능합니다.
             </p>
