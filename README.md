@@ -103,19 +103,9 @@ NEXT_PUBLIC_SUPABASE_SUPPRESS_SESSION_WARNING=true
 `supabase/migrations/` 폴더 내 SQL 파일을 **Supabase Dashboard → SQL Editor** 에서 순서대로 실행합니다.
 
 ```
-001_initial_schema.sql          -- 테이블 스키마, 트리거
-002_rls_policies.sql            -- RLS 정책
-003_fix_meeting_members_rls_recursion.sql  -- RLS 재귀 수정 (SECURITY DEFINER 헬퍼)
-004_unify_rls_helper_functions.sql
-005_fix_trigger_functions_search_path.sql
-006_storage_mission_images.sql  -- mission-images 버킷
-007_fix_is_meeting_admin_global_admin.sql
-008_add_submission_note_and_date.sql
-009_fix_storage_upload_policies.sql
-010_storage_avatars.sql         -- avatars 버킷
-011_admin_users_policies.sql
-012_mission_submissions_delete_policy.sql
-013_meeting_end_delete_policies.sql
+001_schema.sql     -- 테이블 스키마, 인덱스, 트리거
+002_rls.sql        -- 헬퍼 함수 + 전체 RLS 정책
+003_storage.sql    -- 스토리지 버킷 및 정책
 ```
 
 > **주의**: `supabase/migrations/` 파일은 로컬에만 존재합니다. Supabase CLI `db push`가 아닌 Dashboard SQL Editor에서 직접 실행해야 반영됩니다.
