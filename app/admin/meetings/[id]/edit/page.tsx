@@ -5,6 +5,7 @@ import { ROUTES } from '@/lib/constants/routes';
 import { Header } from '@/components/layouts/Header';
 import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { MeetingForm } from '@/components/features/admin/MeetingForm';
+import { MeetingActionButtons } from '@/components/features/admin/MeetingActionButtons';
 import { requireAdmin } from '@/lib/queries/admin';
 
 interface EditMeetingPageProps {
@@ -26,7 +27,7 @@ export default async function EditMeetingPage({ params }: EditMeetingPageProps) 
 
   const { data: meeting, error } = await supabase
     .from('meetings')
-    .select('name, description, period')
+    .select('name, description, period, is_active')
     .eq('id', id)
     .single();
 
@@ -58,6 +59,15 @@ export default async function EditMeetingPage({ params }: EditMeetingPageProps) 
           meetingId={id}
           defaultValues={meeting}
         />
+
+        <div className="mt-8 border-t-2 border-border pt-8">
+          <h2 className="text-lg font-black uppercase tracking-tight mb-4">모임 종료 / 삭제</h2>
+          <MeetingActionButtons
+            meetingId={id}
+            meetingName={meeting.name}
+            isActive={meeting.is_active}
+          />
+        </div>
       </main>
     </div>
   );

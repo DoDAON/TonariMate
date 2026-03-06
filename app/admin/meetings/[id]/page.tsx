@@ -6,7 +6,6 @@ import { Header } from '@/components/layouts/Header';
 import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { requireAdmin } from '@/lib/queries/admin';
 import { InviteCodeDisplay } from '@/components/features/admin/InviteCodeDisplay';
-import { MeetingActionButtons } from '@/components/features/admin/MeetingActionButtons';
 
 interface AdminMeetingPageProps {
   params: Promise<{ id: string }>;
@@ -92,7 +91,7 @@ export default async function AdminMeetingPage({ params }: AdminMeetingPageProps
         </div>
 
         {/* 관리 네비게이션 */}
-        <div className="grid gap-3 mb-6">
+        <div className="grid gap-3">
           {navItems.map((item) => (
             <Link key={item.href} href={item.href}>
               <div className="card-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all cursor-pointer flex items-center justify-between">
@@ -101,16 +100,6 @@ export default async function AdminMeetingPage({ params }: AdminMeetingPageProps
               </div>
             </Link>
           ))}
-        </div>
-
-        {/* 모임 종료 / 삭제 */}
-        <div className="card-brutal border-destructive">
-          <h2 className="text-lg font-black uppercase tracking-tight mb-3">위험 구역</h2>
-          <MeetingActionButtons
-            meetingId={id}
-            meetingName={meeting.name}
-            isActive={meeting.is_active}
-          />
         </div>
       </main>
     </div>
