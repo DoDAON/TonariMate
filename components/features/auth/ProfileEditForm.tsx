@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { uploadAvatarImage } from '@/lib/storage/upload';
 
 interface ProfileEditFormProps {
   userId: string;
   initialName: string;
   initialStudentId: string | null;
+  initialAvatarUrl: string | null;
   onCancel: () => void;
   onSuccess: () => void;
 }
@@ -16,6 +18,7 @@ export function ProfileEditForm({
   userId,
   initialName,
   initialStudentId,
+  initialAvatarUrl,
   onCancel,
   onSuccess,
 }: ProfileEditFormProps) {
@@ -25,6 +28,20 @@ export function ProfileEditForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // 아바타
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  }
+
+  const studentIdInvalid = studentId.trim().length > 0 && studentId.trim().length !== 8;
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -33,16 +50,43 @@ export function ProfileEditForm({
       return;
     }
 
+    if (!studentId.trim()) {
+      setError('학번을 입력해주세요');
+      return;
+    }
+
+    if (studentId.trim().length !== 8) {
+      setError('학번은 8자리여야 합니다');
+      return;
+    }
+
     setLoading(true);
     setError('');
+
+    // 아바타 처리
+    let avatarUrl: string | null | undefined = undefined; // undefined = 변경 없음
+    if (avatarFile) {
+      const uploadResult = await uploadAvatarImage(avatarFile, userId);
+      if (!uploadResult.success || !uploadResult.url) {
+        setError(uploadResult.error ?? '이미지 업로드에 실패했습니다');
+        setLoading(false);
+        return;
+      }
+      avatarUrl = uploadResult.url;
+    }
+
+    const updateData: Record<string, string | null> = {
+      name: name.trim(),
+      student_id: studentId.trim(),
+    };
+    if (avatarUrl !== undefined) {
+      updateData.avatar_url = avatarUrl;
+    }
 
     const supabase = createClient();
     const { error: updateError } = await supabase
       .from('users')
-      .update({
-        name: name.trim(),
-        student_id: studentId.trim() || null,
-      })
+      .update(updateData)
       .eq('id', userId);
 
     if (updateError) {
@@ -55,10 +99,42 @@ export function ProfileEditForm({
     onSuccess();
   };
 
+  const displayAvatar = avatarPreview ?? initialAvatarUrl;
+
   return (
     <section className="card-brutal">
       <h2 className="text-lg font-bold uppercase mb-4">프로필 수정</h2>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* 프로필 사진 */}
+        <div className="flex flex-col items-center gap-3">
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleAvatarChange}
+            className="hidden"
+          />
+          {displayAvatar ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={displayAvatar}
+              alt="프로필 사진"
+              className="w-16 h-16 border-2 border-foreground object-cover"
+            />
+          ) : (
+            <div className="w-16 h-16 border-2 border-foreground bg-muted flex items-center justify-center text-muted-foreground text-xs">
+              사진
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => avatarInputRef.current?.click()}
+            className="btn-brutal bg-muted text-foreground text-sm"
+          >
+            {avatarFile ? '다른 사진 선택' : '사진 변경'}
+          </button>
+        </div>
+
         <div>
           <label htmlFor="edit-name" className="block text-sm font-bold uppercase mb-2">
             이름 <span className="text-destructive">*</span>
@@ -77,17 +153,23 @@ export function ProfileEditForm({
 
         <div>
           <label htmlFor="edit-studentId" className="block text-sm font-bold uppercase mb-2">
-            학번 <span className="text-muted-foreground font-normal">(선택)</span>
+            학번 <span className="text-destructive">*</span>
           </label>
           <input
             id="edit-studentId"
             type="text"
             value={studentId}
-            onChange={(e) => setStudentId(e.target.value)}
+            onChange={(e) => setStudentId(e.target.value.replace(/\D/g, '').slice(0, 8))}
             placeholder="20241234"
             className="input-brutal"
-            maxLength={20}
+            maxLength={8}
+            required
           />
+          {studentIdInvalid && (
+            <p className="text-xs text-destructive font-bold mt-1">
+              학번은 8자리여야 합니다 ({studentId.trim().length}자)
+            </p>
+          )}
         </div>
 
         {error && (
@@ -97,7 +179,7 @@ export function ProfileEditForm({
         <div className="flex gap-3">
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || studentIdInvalid}
             className="btn-brutal touch-target flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? '저장 중...' : '저장'}

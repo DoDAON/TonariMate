@@ -21,6 +21,7 @@ export function ProfileSection({ userId, name, email, avatarUrl, studentId }: Pr
         userId={userId}
         initialName={name}
         initialStudentId={studentId}
+        initialAvatarUrl={avatarUrl}
         onCancel={() => setIsEditing(false)}
         onSuccess={() => setIsEditing(false)}
       />
