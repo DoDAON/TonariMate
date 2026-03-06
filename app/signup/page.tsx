@@ -170,7 +170,7 @@ export default function SignupPage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="홍길동"
               className="input-brutal"
-              maxLength={50}
+              maxLength={10}
               required
             />
           </div>

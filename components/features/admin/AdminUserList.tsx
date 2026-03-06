@@ -274,7 +274,7 @@ export function AdminUserList({ users, currentUserId }: AdminUserListProps) {
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 className="input-brutal w-full"
-                maxLength={50}
+                maxLength={10}
                 required
               />
             </div>
