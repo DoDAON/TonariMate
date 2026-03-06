@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { toast } from 'sonner';
+import { ImageWithLightbox } from '@/components/features/missions/ImageWithLightbox';
 import { reviewSubmission, deleteSubmission } from '@/lib/actions/admin-submissions';
 import { formatTeamName } from '@/lib/utils';
 
@@ -107,11 +107,12 @@ export function SubmissionReviewCard({
 
       {/* 이미지 */}
       <div className="relative w-full aspect-video border-2 border-border overflow-hidden bg-muted">
-        <Image
+        <ImageWithLightbox
           src={submission.image_url}
           alt={`${teamLabel} 제출물`}
           fill
           className="object-cover"
+          containerClassName="relative w-full h-full"
           sizes="(max-width: 768px) 100vw, 50vw"
         />
       </div>

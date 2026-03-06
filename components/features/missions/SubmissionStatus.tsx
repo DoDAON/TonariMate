@@ -1,5 +1,5 @@
-import Image from 'next/image';
 import type { TeamSubmission } from '@/lib/queries/missions';
+import { ImageWithLightbox } from './ImageWithLightbox';
 
 const STATUS_MAP = {
   pending: { label: '심사 중', className: 'bg-muted text-muted-foreground' },
@@ -33,7 +33,7 @@ export default function SubmissionStatus({ submission }: SubmissionStatusProps) 
 
       {/* 제출 이미지 */}
       <div className="border-2 border-border p-2">
-        <Image
+        <ImageWithLightbox
           src={submission.image_url}
           alt="제출 이미지"
           width={600}
