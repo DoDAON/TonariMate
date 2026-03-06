@@ -9,6 +9,7 @@ export const ROUTES = {
 
   // 관리자
   ADMIN: '/admin',
+  ADMIN_USERS: '/admin/users',
   ADMIN_MEETING_NEW: '/admin/meetings/new',
   ADMIN_MEETING: (id: string) => `/admin/meetings/${id}`,
   ADMIN_MEETING_EDIT: (id: string) => `/admin/meetings/${id}/edit`,

@@ -19,6 +19,43 @@ export async function requireAdmin(userId: string): Promise<void> {
   }
 }
 
+export interface AdminUserSummary {
+  id: string;
+  email: string;
+  name: string;
+  student_id: string | null;
+  role: 'user' | 'admin';
+  avatar_url: string | null;
+  created_at: string;
+}
+
+export async function getAllUsers(): Promise<AdminUserSummary[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, email, name, student_id, role, avatar_url, created_at')
+    .order('created_at', { ascending: false });
+
+  if (error || !data) return [];
+  return data as AdminUserSummary[];
+}
+
+export async function setUserRole(
+  userId: string,
+  role: 'user' | 'admin'
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('users')
+    .update({ role })
+    .eq('id', userId);
+
+  if (error) return { success: false, error: '역할 변경에 실패했습니다' };
+  return { success: true };
+}
+
 export interface AdminMeetingSummary {
   id: string;
   name: string;
