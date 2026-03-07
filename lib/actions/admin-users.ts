@@ -12,13 +12,13 @@ interface ActionResult {
 /** 요청자가 admin인지 확인 (redirect 없이 bool 반환) */
 async function checkAdmin(): Promise<boolean> {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) return false;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
 
   const { data } = await supabase
     .from('users')
     .select('role')
-    .eq('id', session.user.id)
+    .eq('id', user.id)
     .single();
 
   return data?.role === 'admin';
