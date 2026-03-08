@@ -131,7 +131,16 @@ export default async function MissionPage({ params }: MissionPageProps) {
             미션 제출
           </h2>
 
-          {meetingEnded ? (
+          {submission ? (
+            <>
+              <SubmissionStatus submission={submission} />
+              {meetingEnded && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  종료된 모임입니다.
+                </p>
+              )}
+            </>
+          ) : meetingEnded ? (
             <p className="text-sm text-muted-foreground">
               종료된 모임입니다. 미션 제출이 불가합니다.
             </p>
@@ -139,8 +148,6 @@ export default async function MissionPage({ params }: MissionPageProps) {
             <p className="text-sm text-muted-foreground">
               팀 배정 후 제출 가능합니다.
             </p>
-          ) : submission ? (
-            <SubmissionStatus submission={submission} />
           ) : mission.status === 'active' ? (
             <MissionSubmissionForm
               missionId={missionId}
