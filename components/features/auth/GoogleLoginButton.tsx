@@ -10,6 +10,9 @@ export function GoogleLoginButton() {
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}${ROUTES.CALLBACK}`,
+        queryParams: {
+          prompt: 'select_account',
+        },
       },
     });
   };
