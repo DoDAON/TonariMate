@@ -30,7 +30,7 @@ export async function reviewSubmission(
 
   const { data: submission, error: fetchError } = await supabase
     .from('mission_submissions')
-    .select('id, mission_id, team_id, status')
+    .select('id, mission_id, team_id, status, text_content')
     .eq('id', submissionId)
     .single();
 
@@ -45,7 +45,7 @@ export async function reviewSubmission(
   if (action === 'approve') {
     const { data: mission } = await supabase
       .from('missions')
-      .select('points')
+      .select('points, mission_type')
       .eq('id', submission.mission_id)
       .single();
 
@@ -74,6 +74,14 @@ export async function reviewSubmission(
 
     if (pointsError) {
       return { success: false, error: '포인트 부여에 실패했습니다' };
+    }
+
+    // 조 이름 정하기 미션: 제출된 이름으로 팀 이름 업데이트
+    if (mission?.mission_type === 'team_naming' && submission.text_content) {
+      await supabase
+        .from('teams')
+        .update({ name: submission.text_content })
+        .eq('id', submission.team_id);
     }
   } else {
     const { error: updateError } = await supabase
@@ -107,7 +115,7 @@ export async function deleteSubmission(
 
   const { data: submission, error: fetchError } = await supabase
     .from('mission_submissions')
-    .select('id, team_id, mission_id, status')
+    .select('id, team_id, mission_id, status, image_url')
     .eq('id', submissionId)
     .single();
 
@@ -124,6 +132,20 @@ export async function deleteSubmission(
       .eq('mission_id', submission.mission_id);
 
     await recalcTeamPoints(supabase, submission.team_id);
+  }
+
+  // 스토리지 이미지 삭제 (best-effort)
+  if (submission.image_url) {
+    try {
+      const marker = '/mission-images/';
+      const idx = submission.image_url.indexOf(marker);
+      if (idx !== -1) {
+        const path = submission.image_url.slice(idx + marker.length);
+        await supabase.storage.from('mission-images').remove([path]);
+      }
+    } catch {
+      // 스토리지 삭제 실패 시 DB 삭제는 계속 진행
+    }
   }
 
   const { error } = await supabase
