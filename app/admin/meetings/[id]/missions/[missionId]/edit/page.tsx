@@ -24,7 +24,7 @@ export default async function EditMissionPage({ params }: EditMissionPageProps) 
 
   const { data: mission, error } = await supabase
     .from('missions')
-    .select('title, description, points, start_date, end_date')
+    .select('title, description, points, start_date, end_date, mission_type')
     .eq('id', missionId)
     .eq('meeting_id', id)
     .single();

@@ -91,9 +91,20 @@ export function MissionForm({ meetingId, mode, missionId, defaultValues, isExpir
         <label className="block text-sm font-bold uppercase mb-1">미션 종류 *</label>
         <input type="hidden" name="mission_type" value={missionType} />
         {mode === 'edit' ? (
-          // 수정 모드: 미션 종류 변경 불가
-          <div className="input-brutal w-fit bg-muted text-muted-foreground text-sm px-4 py-2">
-            {missionType === 'team_naming' ? '조 이름 정하기' : '일반'}
+          // 수정 모드: 전체 선택지 표시 but 클릭 불가
+          <div className="flex gap-2">
+            {(['weekly', 'team_naming'] as MissionType[]).map((type) => (
+              <div
+                key={type}
+                className={`px-4 py-2 text-sm font-bold border-2 transition-all duration-100 ${
+                  missionType === type
+                    ? 'bg-foreground text-background border-foreground'
+                    : 'bg-muted text-muted-foreground border-border'
+                }`}
+              >
+                {type === 'weekly' ? '일반' : '조 이름 정하기'}
+              </div>
+            ))}
           </div>
         ) : (
           <div className="flex gap-2">
@@ -168,30 +179,50 @@ export function MissionForm({ meetingId, mode, missionId, defaultValues, isExpir
           <label htmlFor="start_date" className="block text-sm font-bold uppercase mb-1">
             시작일 *
           </label>
-          <input
-            id="start_date"
-            name="start_date"
-            type="date"
-            required
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="input-brutal w-full"
-          />
+          {mode === 'edit' ? (
+            <>
+              <input type="hidden" name="start_date" value={defaultValues?.start_date ?? ''} />
+              <div className="input-brutal w-full bg-muted text-muted-foreground text-sm">
+                {defaultValues?.start_date ?? '-'}
+              </div>
+            </>
+          ) : (
+            <input
+              id="start_date"
+              name="start_date"
+              type="date"
+              required
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="input-brutal w-full"
+            />
+          )}
         </div>
         <div>
           <label className="block text-sm font-bold uppercase mb-1">종료일 *</label>
-          <input type="hidden" name="end_date" value={computedEndDate} />
-          <select
-            value={endDateOption}
-            onChange={(e) => setEndDateOption(e.target.value as EndDateOption)}
-            className="input-brutal w-full"
-            disabled={!startDate}
-          >
-            <option value="1week">1주 후 (6일)</option>
-            <option value="2weeks">2주 후 (13일)</option>
-          </select>
-          {computedEndDate && (
-            <p className="text-xs text-muted-foreground mt-1 font-mono">{computedEndDate}</p>
+          {mode === 'edit' ? (
+            <>
+              <input type="hidden" name="end_date" value={defaultValues?.end_date ?? ''} />
+              <div className="input-brutal w-full bg-muted text-muted-foreground text-sm">
+                {defaultValues?.end_date ?? '-'}
+              </div>
+            </>
+          ) : (
+            <>
+              <input type="hidden" name="end_date" value={computedEndDate} />
+              <select
+                value={endDateOption}
+                onChange={(e) => setEndDateOption(e.target.value as EndDateOption)}
+                className="input-brutal w-full"
+                disabled={!startDate}
+              >
+                <option value="1week">1주 후 (6일)</option>
+                <option value="2weeks">2주 후 (13일)</option>
+              </select>
+              {computedEndDate && (
+                <p className="text-xs text-muted-foreground mt-1 font-mono">{computedEndDate}</p>
+              )}
+            </>
           )}
         </div>
       </div>
