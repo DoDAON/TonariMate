@@ -8,15 +8,18 @@ import { formatTeamName } from '@/lib/utils';
 
 export interface SubmissionForReview {
   id: string;
-  image_url: string;
+  image_url: string | null;
+  text_content: string | null;
   note: string | null;
   completed_at: string | null;
   status: 'pending' | 'approved' | 'rejected';
   points_awarded: number;
   created_at: string;
-  mission_points: number;
+  mission_type: 'weekly' | 'team_naming';
   team_name: string;
   team_number: number;
+  member_count: number;
+  submitted_by_name: string | null;
 }
 
 interface SubmissionReviewCardProps {
@@ -41,6 +44,19 @@ const STATUS_LABEL: Record<string, string> = {
   rejected: '거절',
 };
 
+/** 멤버 수 기반 포인트 선택지 생성 */
+function getPointOptions(memberCount: number): { label: string; value: number }[] {
+  if (memberCount < 2) return [];
+  const options = [{ label: `전체 (10pt)`, value: 10 }];
+  if (memberCount >= 3) {
+    options.push({ label: `-1명 (8pt)`, value: 8 });
+  }
+  if (memberCount >= 4) {
+    options.push({ label: `-2명 (7pt)`, value: 7 });
+  }
+  return options;
+}
+
 export function SubmissionReviewCard({
   submission,
   meetingId,
@@ -48,9 +64,13 @@ export function SubmissionReviewCard({
   reviewerId,
 }: SubmissionReviewCardProps) {
   const [loading, setLoading] = useState(false);
-  const [customPoints, setCustomPoints] = useState(submission.mission_points);
+  const pointOptions = getPointOptions(submission.member_count);
+  const [selectedPoints, setSelectedPoints] = useState(pointOptions[0]?.value ?? 10);
 
   const teamLabel = formatTeamName(submission.team_number, submission.team_name);
+  const isTeamNaming = submission.mission_type === 'team_naming';
+  // 조 이름 정하기는 포인트 로직 없이 항상 승인 가능, 일반 미션은 멤버 2명 이상 필요
+  const canApprove = isTeamNaming || submission.member_count >= 2;
 
   async function handleReview(action: 'approve' | 'reject') {
     if (action === 'reject' && !confirm('이 제출물을 거절하시겠습니까?')) return;
@@ -61,7 +81,7 @@ export function SubmissionReviewCard({
       missionId,
       reviewerId,
       action,
-      action === 'approve' ? customPoints : undefined
+      action === 'approve' ? (isTeamNaming ? 10 : selectedPoints) : undefined
     );
     setLoading(false);
     if (!result.success) toast.error(result.error ?? '처리에 실패했습니다');
@@ -81,7 +101,7 @@ export function SubmissionReviewCard({
     <div className="border-2 border-border p-4 space-y-3">
       {/* 조 정보 + 상태 + 삭제 */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="font-black">{teamLabel}</span>
           <span
             className={`px-2 py-0.5 text-xs font-bold uppercase border-2 border-border ${
@@ -94,6 +114,9 @@ export function SubmissionReviewCard({
           >
             {STATUS_LABEL[submission.status]}
           </span>
+          {submission.submitted_by_name && (
+            <span className="text-xs text-muted-foreground">by {submission.submitted_by_name}</span>
+          )}
         </div>
         <button
           type="button"
@@ -105,17 +128,24 @@ export function SubmissionReviewCard({
         </button>
       </div>
 
-      {/* 이미지 */}
-      <div className="relative w-full aspect-video border-2 border-border overflow-hidden bg-muted">
-        <ImageWithLightbox
-          src={submission.image_url}
-          alt={`${teamLabel} 제출물`}
-          fill
-          className="object-cover"
-          containerClassName="relative w-full h-full"
-          sizes="(max-width: 768px) 100vw, 50vw"
-        />
-      </div>
+      {/* 제출 내용 */}
+      {isTeamNaming && submission.text_content ? (
+        <div className="border-2 border-border p-4 bg-muted">
+          <p className="text-xs text-muted-foreground uppercase font-bold mb-1">제출된 조 이름</p>
+          <p className="text-lg font-black">{submission.text_content}</p>
+        </div>
+      ) : submission.image_url ? (
+        <div className="relative w-full aspect-video border-2 border-border overflow-hidden bg-muted">
+          <ImageWithLightbox
+            src={submission.image_url}
+            alt={`${teamLabel} 제출물`}
+            fill
+            className="object-cover"
+            containerClassName="relative w-full h-full"
+            sizes="(max-width: 768px) 100vw, 50vw"
+          />
+        </div>
+      ) : null}
 
       {submission.completed_at && (
         <p className="text-xs text-muted-foreground">
@@ -133,33 +163,47 @@ export function SubmissionReviewCard({
 
       {/* 심사 액션 */}
       {isPending && (
-        <div className="flex items-center gap-3 pt-1 border-t-2 border-border">
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-bold">PT</label>
-            <input
-              type="number"
-              min={0}
-              value={customPoints}
-              onChange={(e) => setCustomPoints(Number(e.target.value))}
-              className="input-brutal w-20 text-sm"
-            />
+        <div className="pt-1 border-t-2 border-border space-y-2">
+          {!isTeamNaming && (
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-bold shrink-0">포인트</label>
+              {!canApprove ? (
+                <p className="text-xs text-destructive font-bold">
+                  멤버 2명 이상이어야 승인 가능합니다 (현재 {submission.member_count}명)
+                </p>
+              ) : (
+                <select
+                  value={selectedPoints}
+                  onChange={(e) => setSelectedPoints(Number(e.target.value))}
+                  className="input-brutal text-sm py-1.5"
+                >
+                  {pointOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => handleReview('approve')}
+              disabled={loading || !canApprove}
+              className="btn-brutal text-sm flex-1 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {loading ? '...' : '승인'}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleReview('reject')}
+              disabled={loading}
+              className="btn-brutal bg-destructive text-destructive-foreground text-sm flex-1"
+            >
+              {loading ? '...' : '거절'}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => handleReview('approve')}
-            disabled={loading}
-            className="btn-brutal text-sm flex-1"
-          >
-            {loading ? '...' : '승인'}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleReview('reject')}
-            disabled={loading}
-            className="btn-brutal bg-destructive text-destructive-foreground text-sm flex-1"
-          >
-            {loading ? '...' : '거절'}
-          </button>
         </div>
       )}
 

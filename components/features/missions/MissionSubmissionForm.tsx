@@ -9,6 +9,7 @@ interface MissionSubmissionFormProps {
   meetingId: string;
   teamId: string;
   userId: string;
+  missionType: 'weekly' | 'team_naming';
 }
 
 export default function MissionSubmissionForm({
@@ -16,65 +17,100 @@ export default function MissionSubmissionForm({
   meetingId,
   teamId,
   userId,
+  missionType,
 }: MissionSubmissionFormProps) {
+  const isTeamNaming = missionType === 'team_naming';
+
+  // 일반 미션용 state
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [note, setNote] = useState('');
   const [completedAt, setCompletedAt] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // 조 이름 정하기용 state
+  const [teamName, setTeamName] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const noteLength = note.trim().length;
   const noteInvalid = noteLength > 0 && noteLength < 5;
 
+  const teamNameLen = teamName.trim().length;
+  const teamNameInvalid = teamNameLen > 0 && (teamNameLen < 2 || teamNameLen > 10);
+
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
     if (!selected) return;
-
     setFile(selected);
     setError(null);
     setPreview(URL.createObjectURL(selected));
   }
 
   async function handleSubmit() {
-    if (!file) {
-      setError('이미지를 선택해주세요');
-      return;
-    }
-    if (!completedAt) {
-      setError('수행 날짜를 입력해주세요');
-      return;
-    }
-    if (noteInvalid) {
-      setError('메모는 5자 이상 입력하거나 비워두세요');
-      return;
+    if (isTeamNaming) {
+      if (teamNameLen < 2 || teamNameLen > 10) {
+        setError('조 이름은 2~10자로 입력해주세요');
+        return;
+      }
+    } else {
+      if (!file) {
+        setError('이미지를 선택해주세요');
+        return;
+      }
+      if (!completedAt) {
+        setError('수행 날짜를 입력해주세요');
+        return;
+      }
+      if (noteInvalid) {
+        setError('메모는 5자 이상 입력하거나 비워두세요');
+        return;
+      }
     }
 
     setLoading(true);
     setError(null);
 
-    const uploadResult = await uploadMissionImage(file, meetingId, missionId, teamId);
-    if (!uploadResult.success || !uploadResult.url) {
-      setError(uploadResult.error ?? '업로드 실패');
-      setLoading(false);
-      return;
-    }
+    if (isTeamNaming) {
+      const result = await submitMission(
+        missionId,
+        meetingId,
+        teamId,
+        userId,
+        null,
+        undefined,
+        undefined,
+        teamName.trim()
+      );
+      if (!result.success) {
+        setError(result.error ?? '제출 실패');
+        setLoading(false);
+        return;
+      }
+    } else {
+      const uploadResult = await uploadMissionImage(file!, meetingId, missionId, teamId);
+      if (!uploadResult.success || !uploadResult.url) {
+        setError(uploadResult.error ?? '업로드 실패');
+        setLoading(false);
+        return;
+      }
 
-    const submitResult = await submitMission(
-      missionId,
-      meetingId,
-      teamId,
-      userId,
-      uploadResult.url,
-      note || undefined,
-      completedAt || undefined
-    );
-    if (!submitResult.success) {
-      setError(submitResult.error ?? '제출 실패');
-      setLoading(false);
-      return;
+      const result = await submitMission(
+        missionId,
+        meetingId,
+        teamId,
+        userId,
+        uploadResult.url,
+        note || undefined,
+        completedAt || undefined
+      );
+      if (!result.success) {
+        setError(result.error ?? '제출 실패');
+        setLoading(false);
+        return;
+      }
     }
 
     setSuccess(true);
@@ -85,6 +121,41 @@ export default function MissionSubmissionForm({
     return (
       <div className="card-brutal bg-muted">
         <p className="text-sm font-bold">제출 완료! 심사 결과를 기다려주세요.</p>
+      </div>
+    );
+  }
+
+  if (isTeamNaming) {
+    return (
+      <div className="space-y-4">
+        <div className="space-y-1">
+          <label className="text-sm font-bold">
+            조 이름 <span className="text-destructive">*</span>{' '}
+            <span className="text-muted-foreground font-normal">(2~10자)</span>
+          </label>
+          <input
+            type="text"
+            value={teamName}
+            onChange={(e) => setTeamName(e.target.value)}
+            placeholder="조 이름을 입력하세요"
+            maxLength={10}
+            className="input-brutal w-full"
+          />
+          {teamNameInvalid && (
+            <p className="text-xs text-destructive font-bold">2~10자로 입력해주세요 ({teamNameLen}자)</p>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={loading || teamNameLen < 2 || teamNameLen > 10}
+          className="btn-brutal w-full disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {loading ? '제출 중...' : '제출하기'}
+        </button>
+
+        {error && <p className="text-sm text-destructive font-bold">{error}</p>}
       </div>
     );
   }
@@ -122,7 +193,7 @@ export default function MissionSubmissionForm({
         </div>
       )}
 
-      {/* 수행 날짜 (필수) */}
+      {/* 수행 날짜 */}
       <div className="space-y-1">
         <label className="text-sm font-bold">
           수행 날짜 <span className="text-destructive">*</span>
@@ -136,7 +207,7 @@ export default function MissionSubmissionForm({
         />
       </div>
 
-      {/* 메모 (선택, 최소 5자) */}
+      {/* 메모 */}
       <div className="space-y-1">
         <label className="text-sm font-bold">
           메모 <span className="text-muted-foreground font-normal">(선택 · 입력 시 5자 이상)</span>

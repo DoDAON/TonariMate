@@ -35,22 +35,37 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
 
   const { data: mission, error: mError } = await supabase
     .from('missions')
-    .select('id, title, description, points, start_date, end_date, status')
+    .select('id, title, description, points, start_date, end_date, status, mission_type')
     .eq('id', missionId)
     .eq('meeting_id', meetingId)
     .single();
 
   if (mError || !mission) notFound();
 
+  // 팀 + 멤버 수 조회
   const { data: teams } = await supabase
     .from('teams')
     .select('id, name, team_number')
     .eq('meeting_id', meetingId)
     .order('team_number');
 
+  // 팀별 멤버 수 조회
+  const teamIds = (teams ?? []).map((t) => t.id);
+  const memberCountMap = new Map<string, number>();
+  if (teamIds.length > 0) {
+    const { data: memberCounts } = await supabase
+      .from('team_members')
+      .select('team_id')
+      .in('team_id', teamIds);
+    for (const row of memberCounts ?? []) {
+      memberCountMap.set(row.team_id, (memberCountMap.get(row.team_id) ?? 0) + 1);
+    }
+  }
+
+  // 제출물 + 제출자 이름 조회
   const { data: submissions } = await supabase
     .from('mission_submissions')
-    .select('id, team_id, image_url, note, completed_at, status, points_awarded, created_at')
+    .select('id, team_id, image_url, text_content, note, completed_at, status, points_awarded, created_at, submitted_by, users!mission_submissions_submitted_by_fkey(name)')
     .eq('mission_id', missionId);
 
   const submissionMap = new Map(submissions?.map((s) => [s.team_id, s]) ?? []);
@@ -64,14 +79,17 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
       return {
         id: s.id,
         image_url: s.image_url,
+        text_content: s.text_content,
         note: s.note,
         completed_at: s.completed_at,
         status: s.status,
         points_awarded: s.points_awarded,
         created_at: s.created_at,
-        mission_points: mission.points,
+        mission_type: mission.mission_type,
         team_name: t.name,
         team_number: t.team_number,
+        member_count: memberCountMap.get(t.id) ?? 0,
+        submitted_by_name: (s.users as unknown as { name: string } | null)?.name ?? null,
       };
     });
 
@@ -104,7 +122,12 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
               >
                 {effectiveStatus === 'active' ? '진행 중' : '종료'}
               </span>
-              <span className="font-mono text-sm">{mission.points}pt</span>
+              <span className="px-2 py-0.5 text-xs font-bold border-2 border-border bg-muted">
+                {mission.mission_type === 'team_naming' ? '조 이름 정하기' : '일반'}
+              </span>
+              {mission.mission_type === 'weekly' && (
+                <span className="font-mono text-sm">{mission.points}pt</span>
+              )}
             </div>
             <Link
               href={ROUTES.ADMIN_MEETING_MISSION_EDIT(meetingId, missionId)}
@@ -132,7 +155,6 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
           <EmptyState message="편성된 조가 없습니다" description="조 관리에서 조를 편성해주세요" />
         ) : (
           <div className="space-y-6">
-            {/* 미제출 조 요약 */}
             {notSubmittedTeams.length > 0 && (
               <div className="card-brutal">
                 <h3 className="font-black mb-2 text-muted-foreground">미제출 ({notSubmittedTeams.length})</h3>
@@ -149,7 +171,6 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
               </div>
             )}
 
-            {/* 제출된 조 카드 */}
             {submittedTeams.length > 0 && (
               <div>
                 <h3 className="font-black mb-3">제출된 조 ({submittedTeams.length})</h3>

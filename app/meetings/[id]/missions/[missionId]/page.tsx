@@ -45,6 +45,18 @@ export default async function MissionPage({ params }: MissionPageProps) {
     redirect(ROUTES.LOGIN);
   }
 
+  // 멤버십 확인
+  const { data: membership } = await supabase
+    .from('meeting_members')
+    .select('role')
+    .eq('meeting_id', meetingId)
+    .eq('user_id', user.id)
+    .single();
+
+  if (!membership) {
+    redirect(ROUTES.MY);
+  }
+
   const [mission, meetingResult] = await Promise.all([
     getMissionDetail(missionId, meetingId),
     supabase.from('meetings').select('is_active').eq('id', meetingId).single(),
@@ -80,10 +92,19 @@ export default async function MissionPage({ params }: MissionPageProps) {
         <article className="card-brutal">
           {/* 헤더: 상태 배지 + 포인트 */}
           <div className="flex items-center justify-between mb-4">
-            <span className={`px-3 py-1 text-xs font-bold uppercase border-2 border-border ${statusConfig.className}`}>
-              {statusConfig.label}
+            <div className="flex items-center gap-2">
+              <span className={`px-3 py-1 text-xs font-bold uppercase border-2 border-border ${statusConfig.className}`}>
+                {statusConfig.label}
+              </span>
+              {mission.mission_type === 'team_naming' && (
+                <span className="px-2 py-1 text-xs font-bold border-2 border-border bg-muted">
+                  조 이름 정하기
+                </span>
+              )}
+            </div>
+            <span className="font-mono font-bold">
+              {mission.mission_type === 'team_naming' ? '10pt' : `${mission.points}pt`}
             </span>
-            <span className="font-mono font-bold">{mission.points}pt</span>
           </div>
 
           {/* 제목 */}
@@ -154,6 +175,7 @@ export default async function MissionPage({ params }: MissionPageProps) {
               meetingId={meetingId}
               teamId={team.id}
               userId={user.id}
+              missionType={mission.mission_type}
             />
           ) : (
             <p className="text-sm text-muted-foreground">

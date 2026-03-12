@@ -31,16 +31,24 @@ export default function SubmissionStatus({ submission }: SubmissionStatusProps) 
         )}
       </div>
 
-      {/* 제출 이미지 */}
-      <div className="border-2 border-border p-2">
-        <ImageWithLightbox
-          src={submission.image_url}
-          alt="제출 이미지"
-          width={600}
-          height={400}
-          className="w-full max-h-64 object-contain"
-        />
-      </div>
+      {/* 조 이름 정하기: 텍스트 표시 */}
+      {submission.text_content ? (
+        <div className="border-2 border-border p-4 bg-muted">
+          <p className="text-xs text-muted-foreground uppercase font-bold mb-1">제출된 조 이름</p>
+          <p className="text-lg font-black">{submission.text_content}</p>
+        </div>
+      ) : submission.image_url ? (
+        /* 일반 미션: 이미지 표시 */
+        <div className="border-2 border-border p-2">
+          <ImageWithLightbox
+            src={submission.image_url}
+            alt="제출 이미지"
+            width={600}
+            height={400}
+            className="w-full max-h-64 object-contain"
+          />
+        </div>
+      ) : null}
 
       {/* 수행 날짜 */}
       {submission.completed_at && (
@@ -61,10 +69,13 @@ export default function SubmissionStatus({ submission }: SubmissionStatusProps) 
         </p>
       )}
 
-      {/* 제출일 */}
-      <p className="text-xs text-muted-foreground">
-        {submittedDate} 제출
-      </p>
+      {/* 제출자 + 제출일 */}
+      <div className="text-xs text-muted-foreground space-y-0.5">
+        {submission.submitter_name && (
+          <p>제출자: {submission.submitter_name}</p>
+        )}
+        <p>{submittedDate} 제출</p>
+      </div>
     </div>
   );
 }
