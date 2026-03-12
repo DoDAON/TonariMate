@@ -74,16 +74,23 @@ interface MissionItemProps {
 function MissionItem({ mission, meetingId }: MissionItemProps) {
   return (
     <Link href={ROUTES.MISSION(meetingId, mission.id)} className="block">
-      <div className="card-brutal transition-all duration-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:[box-shadow:var(--shadow-brutal-lg)]">
+      <div className="card-brutal transition-all duration-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:[box-shadow:var(--shadow-brutal-lg)] active:translate-x-[2px] active:translate-y-[2px] active:[box-shadow:var(--shadow-brutal-sm)]">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h4 className="font-bold truncate">{mission.title}</h4>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="font-bold truncate">{mission.title}</h4>
+              {mission.mission_type === 'team_naming' && (
+                <span className="text-xs font-bold border border-border px-1.5 py-0.5 bg-muted shrink-0">
+                  조 이름
+                </span>
+              )}
+            </div>
             <p className="text-muted-foreground text-sm mt-1 line-clamp-1">
               {mission.description}
             </p>
           </div>
           <span className="font-mono font-bold whitespace-nowrap shrink-0">
-            {mission.points}pt
+            {mission.mission_type === 'team_naming' ? '10pt' : `${mission.points}pt`}
           </span>
         </div>
         <p className="text-muted-foreground text-xs font-mono mt-2">
@@ -93,3 +100,5 @@ function MissionItem({ mission, meetingId }: MissionItemProps) {
     </Link>
   );
 }
+
+export { MissionSection as WeeklyMissionSection };

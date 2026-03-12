@@ -9,7 +9,7 @@ interface MeetingCardProps {
 export function MeetingCard({ meeting }: MeetingCardProps) {
   return (
     <Link href={ROUTES.MEETING(meeting.id)} className="block">
-      <div className="card-brutal transition-all duration-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:[box-shadow:var(--shadow-brutal-lg)]">
+      <div className="card-brutal transition-all duration-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:[box-shadow:var(--shadow-brutal-lg)] active:translate-x-[2px] active:translate-y-[2px] active:[box-shadow:var(--shadow-brutal-sm)]">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-bold truncate">{meeting.name}</h3>

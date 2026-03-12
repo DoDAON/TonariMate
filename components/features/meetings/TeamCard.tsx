@@ -8,7 +8,7 @@ interface TeamCardProps {
 
 export function TeamCard({ team }: TeamCardProps) {
   return (
-    <div className="card-brutal transition-all duration-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:[box-shadow:var(--shadow-brutal-lg)]">
+    <div className="card-brutal transition-all duration-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:[box-shadow:var(--shadow-brutal-lg)] active:translate-x-[2px] active:translate-y-[2px] active:[box-shadow:var(--shadow-brutal-sm)]">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold">
           {formatTeamName(team.team_number, team.name)}

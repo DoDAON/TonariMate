@@ -17,7 +17,7 @@ export function LeaderboardItem({ team, isMyTeam }: LeaderboardItemProps) {
 
   return (
     <div
-      className={`card-brutal cursor-pointer select-none ${isMyTeam ? 'border-primary border-[3px]' : ''}`}
+      className={`card-brutal cursor-pointer select-none transition-all duration-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:[box-shadow:var(--shadow-brutal-lg)] active:translate-x-[2px] active:translate-y-[2px] active:[box-shadow:var(--shadow-brutal-sm)] ${isMyTeam ? 'border-primary border-[3px]' : ''}`}
       onClick={() => setOpen((prev) => !prev)}
     >
       {/* 헤더 */}

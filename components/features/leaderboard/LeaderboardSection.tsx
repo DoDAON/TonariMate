@@ -23,7 +23,7 @@ export async function LeaderboardSection({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 items-start">
+    <div className="grid grid-cols-2 gap-3 items-start overflow-visible">
       {teams.map((team) => (
         <LeaderboardItem
           key={team.id}
