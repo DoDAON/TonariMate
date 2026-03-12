@@ -142,16 +142,20 @@ export async function getMeetingDailySubmissions(
   }));
 }
 
+export interface TeamDailySubmission extends DailySubmission {
+  submitter_name: string | null;
+}
+
 /** 팀별 데일리 제출 내역 (조 페이지용, rejected 제외) */
 export async function getTeamDailySubmissions(
   teamId: string,
   weekStart?: string
-): Promise<DailySubmission[]> {
+): Promise<TeamDailySubmission[]> {
   const supabase = await createClient();
 
   let query = supabase
     .from('daily_submissions')
-    .select('*')
+    .select('*, users!daily_submissions_submitted_by_fkey(name)')
     .eq('team_id', teamId)
     .neq('status', 'rejected')
     .order('submitted_date', { ascending: true });
@@ -162,5 +166,22 @@ export async function getTeamDailySubmissions(
 
   const { data, error } = await query;
   if (error || !data) return [];
-  return data;
+
+  return data.map((row) => ({
+    id: row.id,
+    meeting_id: row.meeting_id,
+    team_id: row.team_id,
+    submitted_by: row.submitted_by,
+    submitted_date: row.submitted_date,
+    week_start: row.week_start,
+    image_url: row.image_url,
+    completed_at: row.completed_at,
+    note: row.note,
+    status: row.status,
+    reviewed_by: row.reviewed_by,
+    reviewed_at: row.reviewed_at,
+    points_awarded: row.points_awarded,
+    created_at: row.created_at,
+    submitter_name: (row.users as unknown as { name: string } | null)?.name ?? null,
+  }));
 }

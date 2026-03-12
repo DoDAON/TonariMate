@@ -7,6 +7,7 @@ import { Header } from '@/components/layouts/Header';
 import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { WeekSelector } from '@/components/shared/WeekSelector';
+import { ImageWithLightbox } from '@/components/features/missions/ImageWithLightbox';
 import { formatTeamName } from '@/lib/utils';
 import { getTeamDetail, getTeamPointsHistory } from '@/lib/queries/leaderboard';
 import {
@@ -156,13 +157,17 @@ export default async function TeamPage({ params, searchParams }: TeamPageProps) 
 
                   {sub ? (
                     <>
+                      {sub.submitter_name && (
+                        <p className="text-xs font-bold text-muted-foreground">{sub.submitter_name}</p>
+                      )}
                       {sub.image_url && (
                         <div className="relative w-full aspect-video border-2 border-border overflow-hidden bg-muted">
-                          <Image
+                          <ImageWithLightbox
                             src={sub.image_url}
                             alt={`제출 ${idx + 1}`}
                             fill
                             className="object-cover"
+                            containerClassName="relative w-full h-full"
                             sizes="(max-width: 640px) 100vw, 33vw"
                           />
                         </div>
