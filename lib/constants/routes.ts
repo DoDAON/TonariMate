@@ -25,6 +25,8 @@ export const ROUTES = {
   ADMIN_MEETING_ANNOUNCEMENT_NEW: (id: string) => `/admin/meetings/${id}/announcements/new`,
   ADMIN_MEETING_ANNOUNCEMENT_EDIT: (id: string, announcementId: string) => `/admin/meetings/${id}/announcements/${announcementId}/edit`,
 
+  MEETING_ANNOUNCEMENTS: (id: string) => `/meetings/${id}/announcements`,
+
   // 인증
   LOGIN: '/login',
   SIGNUP: '/signup',

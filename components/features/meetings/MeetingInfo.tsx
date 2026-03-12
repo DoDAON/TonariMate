@@ -1,10 +1,13 @@
+import Link from 'next/link';
+import { ROUTES } from '@/lib/constants/routes';
 import type { MeetingDetail } from '@/lib/queries/meetings';
 
 interface MeetingInfoProps {
   meeting: MeetingDetail;
+  meetingId: string;
 }
 
-export function MeetingInfo({ meeting }: MeetingInfoProps) {
+export function MeetingInfo({ meeting, meetingId }: MeetingInfoProps) {
   return (
     <section className="card-brutal">
       <div className="flex items-start justify-between gap-4">
@@ -29,6 +32,14 @@ export function MeetingInfo({ meeting }: MeetingInfoProps) {
           이 모임은 종료되었습니다
         </p>
       )}
+      <div className="mt-4 pt-4 border-t-2 border-foreground">
+        <Link
+          href={ROUTES.MEETING_ANNOUNCEMENTS(meetingId)}
+          className="inline-flex items-center gap-2 text-sm font-bold uppercase border-2 border-foreground px-4 py-2 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:[box-shadow:2px_2px_0_var(--foreground)] active:translate-x-[1px] active:translate-y-[1px] active:[box-shadow:none] transition-all duration-100"
+        >
+          공지사항 보기
+        </Link>
+      </div>
     </section>
   );
 }

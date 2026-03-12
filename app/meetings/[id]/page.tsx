@@ -12,14 +12,12 @@ import {
   getWeekStart,
   getTodayStr,
 } from '@/lib/queries/daily-submissions';
-import { getMeetingAnnouncements } from '@/lib/queries/announcements';
 import Link from 'next/link';
 import { MeetingInfo } from '@/components/features/meetings/MeetingInfo';
 import { TeamCard } from '@/components/features/meetings/TeamCard';
 import { WeeklyMissionSection } from '@/components/features/meetings/MissionSection';
 import { DailyMissionStatus } from '@/components/features/missions/DailyMissionStatus';
 import { LeaderboardSection } from '@/components/features/leaderboard/LeaderboardSection';
-import { AnnouncementSection } from '@/components/features/meetings/AnnouncementSection';
 
 interface MeetingPageProps {
   params: Promise<{ id: string }>;
@@ -47,11 +45,10 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
   const today = getTodayStr();
   const weekStart = getWeekStart(today, meeting.start_date);
 
-  // 팀, 미션, 공지사항 병렬 조회
-  const [team, missions, announcements] = await Promise.all([
+  // 팀, 미션 병렬 조회
+  const [team, missions] = await Promise.all([
     getUserTeamInMeeting(id, userId),
     getMeetingMissions(id),
-    getMeetingAnnouncements(id),
   ]);
 
   // 데일리 미션 데이터 (팀이 있는 경우만)
@@ -76,15 +73,7 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
           </Link>
         </nav>
 
-        <MeetingInfo meeting={meeting} />
-
-        {/* 공지사항 */}
-        {announcements.length > 0 && (
-          <section className="mt-8">
-            <h2 className="text-2xl font-bold uppercase mb-6">공지사항</h2>
-            <AnnouncementSection announcements={announcements} />
-          </section>
-        )}
+        <MeetingInfo meeting={meeting} meetingId={id} />
 
         {/* 내 조 */}
         <section className="mt-8">

@@ -23,6 +23,26 @@ export async function getMeetingAnnouncements(meetingId: string): Promise<Announ
   return data;
 }
 
+export async function getMeetingAnnouncementsPaged(
+  meetingId: string,
+  page: number,
+  limit = 10
+): Promise<{ data: Announcement[]; total: number }> {
+  const supabase = await createClient();
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  const { data, error, count } = await supabase
+    .from('announcements')
+    .select('id, meeting_id, title, body, created_by, created_at, updated_at', { count: 'exact' })
+    .eq('meeting_id', meetingId)
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  if (error || !data) return { data: [], total: 0 };
+  return { data, total: count ?? 0 };
+}
+
 export async function getAnnouncementById(id: string): Promise<Announcement | null> {
   const supabase = await createClient();
 
