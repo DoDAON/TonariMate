@@ -6,11 +6,20 @@ import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { getMeetingDetail } from '@/lib/queries/meetings';
 import { getUserTeamInMeeting } from '@/lib/queries/teams';
 import { getMeetingMissions } from '@/lib/queries/missions';
+import {
+  getUserTodayDailySubmission,
+  getUserWeeklyDailyCount,
+  getWeekStart,
+  getTodayStr,
+} from '@/lib/queries/daily-submissions';
+import { getMeetingAnnouncements } from '@/lib/queries/announcements';
 import Link from 'next/link';
 import { MeetingInfo } from '@/components/features/meetings/MeetingInfo';
 import { TeamCard } from '@/components/features/meetings/TeamCard';
-import { MissionSection } from '@/components/features/meetings/MissionSection';
+import { WeeklyMissionSection } from '@/components/features/meetings/MissionSection';
+import { DailyMissionStatus } from '@/components/features/missions/DailyMissionStatus';
 import { LeaderboardSection } from '@/components/features/leaderboard/LeaderboardSection';
+import { AnnouncementSection } from '@/components/features/meetings/AnnouncementSection';
 
 interface MeetingPageProps {
   params: Promise<{ id: string }>;
@@ -35,11 +44,23 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
     notFound();
   }
 
-  // 팀과 미션을 병렬 조회
-  const [team, missions] = await Promise.all([
+  const today = getTodayStr();
+  const weekStart = getWeekStart(today, meeting.start_date);
+
+  // 팀, 미션, 공지사항 병렬 조회
+  const [team, missions, announcements] = await Promise.all([
     getUserTeamInMeeting(id, userId),
     getMeetingMissions(id),
+    getMeetingAnnouncements(id),
   ]);
+
+  // 데일리 미션 데이터 (팀이 있는 경우만)
+  const [todayDailySubmission, weeklyDailyCount] = team
+    ? await Promise.all([
+        getUserTodayDailySubmission(id, userId),
+        getUserWeeklyDailyCount(id, userId, weekStart),
+      ])
+    : [null, 0];
 
   return (
     <div className="min-h-screen noise-overlay">
@@ -56,6 +77,14 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
         </nav>
 
         <MeetingInfo meeting={meeting} />
+
+        {/* 공지사항 */}
+        {announcements.length > 0 && (
+          <section className="mt-8">
+            <h2 className="text-2xl font-bold uppercase mb-6">공지사항</h2>
+            <AnnouncementSection announcements={announcements} />
+          </section>
+        )}
 
         {/* 내 조 */}
         <section className="mt-8">
@@ -76,7 +105,24 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
         {/* 미션 */}
         <section className="mt-8">
           <h2 className="text-2xl font-bold uppercase mb-6">미션</h2>
-          <MissionSection missions={missions} meetingId={id} />
+
+          {/* 데일리 미션 */}
+          <div className="mb-6">
+            <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">데일리 미션</h3>
+            <DailyMissionStatus
+              meetingId={id}
+              todaySubmission={todayDailySubmission}
+              weeklyCount={weeklyDailyCount}
+              meetingActive={meeting.is_active}
+              hasTeam={!!team}
+            />
+          </div>
+
+          {/* 주간 미션 */}
+          <div>
+            <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">주간 미션</h3>
+            <WeeklyMissionSection missions={missions} meetingId={id} />
+          </div>
         </section>
 
         {/* 리더보드 */}
