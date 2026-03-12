@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export interface AdminSubmission {
   id: string;
-  image_url: string;
+  image_url: string | null;
   status: 'pending' | 'approved' | 'rejected';
   points_awarded: number;
   created_at: string;

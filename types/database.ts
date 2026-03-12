@@ -51,6 +51,7 @@ export interface Database {
           invite_code: string;
           is_active: boolean;
           created_by: string;
+          start_date: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -62,6 +63,7 @@ export interface Database {
           invite_code?: string;
           is_active?: boolean;
           created_by: string;
+          start_date?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -73,6 +75,7 @@ export interface Database {
           invite_code?: string;
           is_active?: boolean;
           created_by?: string;
+          start_date?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -171,6 +174,7 @@ export interface Database {
           end_date: string;
           max_participants: number | null;
           status: 'active' | 'completed';
+          mission_type: 'weekly' | 'team_naming';
           created_at: string;
           updated_at: string;
         };
@@ -184,6 +188,7 @@ export interface Database {
           end_date: string;
           max_participants?: number | null;
           status?: 'active' | 'completed';
+          mission_type?: 'weekly' | 'team_naming';
           created_at?: string;
           updated_at?: string;
         };
@@ -197,6 +202,7 @@ export interface Database {
           end_date?: string;
           max_participants?: number | null;
           status?: 'active' | 'completed';
+          mission_type?: 'weekly' | 'team_naming';
           created_at?: string;
           updated_at?: string;
         };
@@ -216,7 +222,8 @@ export interface Database {
           mission_id: string;
           team_id: string;
           submitted_by: string;
-          image_url: string;
+          image_url: string | null;
+          text_content: string | null;
           note: string | null;
           completed_at: string | null;
           status: 'pending' | 'approved' | 'rejected';
@@ -230,7 +237,8 @@ export interface Database {
           mission_id: string;
           team_id: string;
           submitted_by: string;
-          image_url: string;
+          image_url?: string | null;
+          text_content?: string | null;
           note?: string | null;
           completed_at?: string | null;
           status?: 'pending' | 'approved' | 'rejected';
@@ -244,7 +252,8 @@ export interface Database {
           mission_id?: string;
           team_id?: string;
           submitted_by?: string;
-          image_url?: string;
+          image_url?: string | null;
+          text_content?: string | null;
           note?: string | null;
           completed_at?: string | null;
           status?: 'pending' | 'approved' | 'rejected';
@@ -365,6 +374,166 @@ export interface Database {
           },
         ];
       };
+      daily_submissions: {
+        Row: {
+          id: string;
+          meeting_id: string;
+          team_id: string;
+          submitted_by: string;
+          submitted_date: string;
+          week_start: string;
+          image_url: string;
+          completed_at: string | null;
+          note: string | null;
+          status: 'pending' | 'approved' | 'rejected';
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          points_awarded: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          meeting_id: string;
+          team_id: string;
+          submitted_by: string;
+          submitted_date?: string;
+          week_start: string;
+          image_url: string;
+          completed_at?: string | null;
+          note?: string | null;
+          status?: 'pending' | 'approved' | 'rejected';
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          points_awarded?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          meeting_id?: string;
+          team_id?: string;
+          submitted_by?: string;
+          submitted_date?: string;
+          week_start?: string;
+          image_url?: string;
+          completed_at?: string | null;
+          note?: string | null;
+          status?: 'pending' | 'approved' | 'rejected';
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          points_awarded?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'daily_submissions_meeting_id_fkey';
+            columns: ['meeting_id'];
+            isOneToOne: false;
+            referencedRelation: 'meetings';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'daily_submissions_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'teams';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'daily_submissions_submitted_by_fkey';
+            columns: ['submitted_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'daily_submissions_reviewed_by_fkey';
+            columns: ['reviewed_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      announcements: {
+        Row: {
+          id: string;
+          meeting_id: string;
+          title: string;
+          body: string;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          meeting_id: string;
+          title: string;
+          body: string;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          meeting_id?: string;
+          title?: string;
+          body?: string;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'announcements_meeting_id_fkey';
+            columns: ['meeting_id'];
+            isOneToOne: false;
+            referencedRelation: 'meetings';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'announcements_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      push_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          endpoint?: string;
+          p256dh?: string;
+          auth?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'push_subscriptions_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -375,6 +544,7 @@ export interface Database {
     Enums: {
       user_role: 'user' | 'admin';
       mission_status: 'active' | 'completed';
+      mission_type: 'weekly' | 'team_naming';
       submission_status: 'pending' | 'approved' | 'rejected';
       meeting_member_role: 'member' | 'admin';
     };

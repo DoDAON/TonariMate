@@ -14,16 +14,17 @@ export async function submitMission(
   meetingId: string,
   teamId: string,
   userId: string,
-  imageUrl: string,
+  imageUrl: string | null,
   note?: string,
-  completedAt?: string
+  completedAt?: string,
+  textContent?: string
 ): Promise<SubmitMissionResult> {
   const supabase = await createClient();
 
-  // 미션 상태 검증
+  // 미션 상태 + 타입 검증
   const { data: mission, error: missionError } = await supabase
     .from('missions')
-    .select('status')
+    .select('status, mission_type')
     .eq('id', missionId)
     .eq('meeting_id', meetingId)
     .single();
@@ -36,7 +37,22 @@ export async function submitMission(
     return { success: false, error: '종료된 미션에는 제출할 수 없습니다' };
   }
 
-  // 제출 INSERT
+  const isTeamNaming = mission.mission_type === 'team_naming';
+
+  if (isTeamNaming) {
+    if (!textContent?.trim()) {
+      return { success: false, error: '조 이름을 입력해주세요' };
+    }
+    const trimmed = textContent.trim();
+    if (trimmed.length < 2 || trimmed.length > 10) {
+      return { success: false, error: '조 이름은 2~10자로 입력해주세요' };
+    }
+  } else {
+    if (!imageUrl) {
+      return { success: false, error: '이미지를 선택해주세요' };
+    }
+  }
+
   const { error: insertError } = await supabase
     .from('mission_submissions')
     .insert({
@@ -44,6 +60,7 @@ export async function submitMission(
       team_id: teamId,
       submitted_by: userId,
       image_url: imageUrl,
+      text_content: textContent?.trim() || null,
       note: note?.trim() || null,
       completed_at: completedAt || null,
     });
