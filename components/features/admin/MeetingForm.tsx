@@ -13,6 +13,7 @@ interface MeetingFormProps {
     name: string;
     description: string | null;
     period: string;
+    start_date?: string | null;
   };
 }
 
@@ -76,6 +77,22 @@ export function MeetingForm({ userId, mode, meetingId, defaultValues }: MeetingF
           className="input-brutal w-full"
           placeholder="예: 2026년 3월 ~ 6월"
         />
+      </div>
+
+      <div>
+        <label htmlFor="start_date" className="block text-sm font-bold uppercase mb-1">
+          시작일
+        </label>
+        <input
+          id="start_date"
+          name="start_date"
+          type="date"
+          defaultValue={defaultValues?.start_date ?? ''}
+          className="input-brutal w-full"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          데일리 미션 주 기준점으로 사용됩니다.
+        </p>
       </div>
 
       <div>

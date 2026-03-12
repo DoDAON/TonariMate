@@ -26,6 +26,7 @@ export async function createMeeting(
   const name = formData.get('name') as string;
   const description = formData.get('description') as string;
   const period = formData.get('period') as string;
+  const startDate = formData.get('start_date') as string;
 
   if (!name?.trim() || !period?.trim()) {
     return { success: false, error: '모임 이름과 기간은 필수입니다' };
@@ -41,6 +42,7 @@ export async function createMeeting(
       period: period.trim(),
       invite_code: generateInviteCode(),
       created_by: userId,
+      start_date: startDate?.trim() || null,
     })
     .select('id')
     .single();
@@ -68,6 +70,7 @@ export async function updateMeeting(
   const name = formData.get('name') as string;
   const description = formData.get('description') as string;
   const period = formData.get('period') as string;
+  const startDate = formData.get('start_date') as string;
 
   if (!name?.trim() || !period?.trim()) {
     return { success: false, error: '모임 이름과 기간은 필수입니다' };
@@ -81,6 +84,7 @@ export async function updateMeeting(
       name: name.trim(),
       description: description?.trim() || null,
       period: period.trim(),
+      start_date: startDate?.trim() || null,
     })
     .eq('id', meetingId);
 

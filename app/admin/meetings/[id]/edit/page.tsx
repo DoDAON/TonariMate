@@ -27,7 +27,7 @@ export default async function EditMeetingPage({ params }: EditMeetingPageProps) 
 
   const { data: meeting, error } = await supabase
     .from('meetings')
-    .select('name, description, period, is_active')
+    .select('name, description, period, is_active, start_date')
     .eq('id', id)
     .single();
 
