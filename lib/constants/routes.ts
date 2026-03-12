@@ -18,7 +18,12 @@ export const ROUTES = {
   ADMIN_MEETING_MISSION_NEW: (id: string) => `/admin/meetings/${id}/missions/new`,
   ADMIN_MEETING_MISSION: (id: string, missionId: string) => `/admin/meetings/${id}/missions/${missionId}`,
   ADMIN_MEETING_MISSION_EDIT: (id: string, missionId: string) => `/admin/meetings/${id}/missions/${missionId}/edit`,
+  MEETING_DAILY: (id: string) => `/meetings/${id}/daily`,
   ADMIN_MEETING_SUBMISSIONS: (id: string) => `/admin/meetings/${id}/submissions`,
+  ADMIN_MEETING_DAILY: (id: string) => `/admin/meetings/${id}/daily`,
+  ADMIN_MEETING_ANNOUNCEMENTS: (id: string) => `/admin/meetings/${id}/announcements`,
+  ADMIN_MEETING_ANNOUNCEMENT_NEW: (id: string) => `/admin/meetings/${id}/announcements/new`,
+  ADMIN_MEETING_ANNOUNCEMENT_EDIT: (id: string, announcementId: string) => `/admin/meetings/${id}/announcements/${announcementId}/edit`,
 
   // 인증
   LOGIN: '/login',

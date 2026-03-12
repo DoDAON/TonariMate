@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import { ServiceWorkerProvider } from "@/components/providers/ServiceWorkerProvider";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -47,6 +48,7 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
+        <ServiceWorkerProvider />
         {children}
         <Toaster position="bottom-center" />
       </body>

@@ -39,7 +39,9 @@ export default async function AdminMeetingPage({ params }: AdminMeetingPageProps
   const navItems = [
     { label: '모임 수정', href: ROUTES.ADMIN_MEETING_EDIT(id) },
     { label: `조 관리 (${teamsResult.count ?? 0}조)`, href: ROUTES.ADMIN_MEETING_TEAMS(id) },
-    { label: `미션 관리 (${missionsResult.count ?? 0})`, href: ROUTES.ADMIN_MEETING_MISSIONS(id) },
+    { label: `주간 미션 관리 (${missionsResult.count ?? 0})`, href: ROUTES.ADMIN_MEETING_MISSIONS(id) },
+    { label: '데일리 미션 관리', href: ROUTES.ADMIN_MEETING_DAILY(id) },
+    { label: '공지사항 관리', href: ROUTES.ADMIN_MEETING_ANNOUNCEMENTS(id) },
   ];
 
   return (
