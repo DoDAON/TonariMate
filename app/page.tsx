@@ -12,7 +12,9 @@ export default async function Home() {
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user ?? null;
 
-  const meetings = user ? await getUserMeetings(user.id) : [];
+  const allMeetings = user ? await getUserMeetings(user.id) : [];
+  const meetings = allMeetings.filter((m) => m.is_active);
+  const endedMeetings = allMeetings.filter((m) => !m.is_active);
 
   return (
     <div className="min-h-screen noise-overlay">
@@ -45,7 +47,15 @@ export default async function Home() {
         <section className="max-w-4xl mx-auto mb-16">
           <h2 className="text-2xl font-bold uppercase mb-6">내 모임</h2>
           {user ? (
-            <MeetingList meetings={meetings} />
+            <div className="space-y-8">
+              <MeetingList meetings={meetings} />
+              {endedMeetings.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold uppercase text-muted-foreground mb-4">종료된 모임</h3>
+                  <MeetingList meetings={endedMeetings} />
+                </div>
+              )}
+            </div>
           ) : (
             <EmptyState message="로그인 후 모임을 확인할 수 있습니다." />
           )}

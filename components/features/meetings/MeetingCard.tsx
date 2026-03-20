@@ -26,11 +26,6 @@ export function MeetingCard({ meeting }: MeetingCardProps) {
             {meeting.role === 'admin' ? '관리자' : '멤버'}
           </span>
         </div>
-        {!meeting.is_active && (
-          <p className="text-muted-foreground text-xs mt-3 font-mono uppercase">
-            종료됨
-          </p>
-        )}
       </div>
     </Link>
   );
