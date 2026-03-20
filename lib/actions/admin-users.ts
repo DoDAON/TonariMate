@@ -3,25 +3,11 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { ROUTES } from '@/lib/constants/routes';
+import { checkAdmin } from '@/lib/auth';
 
 interface ActionResult {
   success: boolean;
   error?: string;
-}
-
-/** 요청자가 admin인지 확인 (redirect 없이 bool 반환) */
-async function checkAdmin(): Promise<boolean> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return false;
-
-  const { data } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  return data?.role === 'admin';
 }
 
 export async function setUserRole(
