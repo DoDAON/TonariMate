@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import { ROUTES } from '@/lib/constants/routes';
 import type { DailySubmission } from '@/lib/queries/daily-submissions';
@@ -16,6 +19,35 @@ const STATUS_MAP = {
   rejected: { label: '반려', className: 'bg-destructive text-destructive-foreground' },
 } as const;
 
+function DailyInfoModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={onClose}
+    >
+      <div
+        className="card-brutal bg-background max-w-sm w-full mx-4 space-y-3"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="font-black uppercase">데일리 미션이란?</h3>
+          <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground font-bold">
+            ✕
+          </button>
+        </div>
+        <div className="space-y-3 text-sm">
+          <p>조원과 함께 활동을 하고 인증하기</p>
+          <p className="text-muted-foreground">(예: 카페가기, 식사하기, 게임하기, 공부하기 등 함께라면 무엇이든!)</p>
+          <ul className="space-y-1">
+            <li>■ 데일리 미션은 수행 당 1점이 부여됩니다</li>
+            <li>■ 4인 이상 참여 시 데일리 미션 포인트를 획득할 수 있습니다</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function DailyMissionStatus({
   meetingId,
   todaySubmission,
@@ -23,22 +55,33 @@ export function DailyMissionStatus({
   meetingActive,
   hasTeam,
 }: DailyMissionStatusProps) {
+  const [showInfo, setShowInfo] = useState(false);
+
   // 이번 주 진행 바
   const progressBar = (
-    <div className="flex items-center gap-3 mb-4">
-      <div className="flex gap-1.5">
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className={`w-8 h-8 border-2 border-foreground flex items-center justify-center text-xs font-bold ${
-              i <= weeklyCount ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-            }`}
-          >
-            {i}
-          </div>
-        ))}
+    <div className="space-y-2 mb-4">
+      <div className="flex items-center gap-3">
+        <div className="flex gap-1.5">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className={`w-8 h-8 border-2 border-foreground flex items-center justify-center text-xs font-bold ${
+                i <= weeklyCount ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {i}
+            </div>
+          ))}
+        </div>
+        <span className="text-sm text-muted-foreground font-mono">{weeklyCount}/3회</span>
       </div>
-      <span className="text-sm text-muted-foreground font-mono">{weeklyCount}/3회</span>
+      <button
+        type="button"
+        onClick={() => setShowInfo(true)}
+        className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+      >
+        데일리 미션이란? ?
+      </button>
     </div>
   );
 
@@ -62,6 +105,7 @@ export function DailyMissionStatus({
 
   return (
     <div className="card-brutal space-y-3">
+      {showInfo && <DailyInfoModal onClose={() => setShowInfo(false)} />}
       {progressBar}
 
       {/* 오늘 제출 상태 */}
