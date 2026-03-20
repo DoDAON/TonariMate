@@ -8,19 +8,41 @@ interface GoogleLoginButtonProps {
   nextUrl?: string;
 }
 
-function detectInAppBrowser(): boolean {
-  if (typeof navigator === 'undefined') return false;
+function detectInAppBrowser() {
+  if (typeof navigator === 'undefined') return { inApp: false, isIos: false };
   const ua = navigator.userAgent;
-  return /KAKAOTALK|Instagram|FBAN|FBAV|Line\/|NAVER|Snapchat/i.test(ua)
-    || (/Android/i.test(ua) && /wv\b/.test(ua));
+  const inApp =
+    /KAKAOTALK|Instagram|FBAN|FBAV|Line\/|NAVER|Snapchat/i.test(ua) ||
+    (/Android/i.test(ua) && /wv\b/.test(ua));
+  const isIos = /iPhone|iPad|iPod/i.test(ua);
+  return { inApp, isIos };
 }
 
 export function GoogleLoginButton({ nextUrl }: GoogleLoginButtonProps = {}) {
-  const [isInApp, setIsInApp] = useState(false);
+  // null = 아직 감지 전, false = 일반 브라우저, true = 인앱(iOS)
+  const [iosInApp, setIosInApp] = useState<boolean | null>(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    setIsInApp(detectInAppBrowser());
+    const { inApp, isIos } = detectInAppBrowser();
+    if (!inApp) {
+      setIosInApp(false);
+      return;
+    }
+
+    if (isIos) {
+      // iOS: 자동 전환 불가 → 안내 UI 표시
+      setIosInApp(true);
+    } else {
+      // Android: intent:// 스킴으로 외부 브라우저(Chrome) 자동 전환
+      const current = window.location.href;
+      const intentUrl =
+        current.replace(/^https?:\/\//, 'intent://') +
+        '#Intent;scheme=https;package=com.android.chrome;end;';
+      window.location.href = intentUrl;
+      // 전환 실패 시 fallback으로 안내 UI 표시
+      setTimeout(() => setIosInApp(true), 1500);
+    }
   }, []);
 
   const handleGoogleLogin = async () => {
@@ -32,29 +54,28 @@ export function GoogleLoginButton({ nextUrl }: GoogleLoginButtonProps = {}) {
       provider: 'google',
       options: {
         redirectTo: callbackUrl,
-        queryParams: {
-          prompt: 'select_account',
-        },
+        queryParams: { prompt: 'select_account' },
       },
     });
   };
 
   const handleCopyUrl = async () => {
-    const url = window.location.href;
-    await navigator.clipboard.writeText(url);
+    await navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (isInApp) {
+  // 감지 전 또는 Android 자동 전환 중
+  if (iosInApp === null) return null;
+
+  // iOS 인앱 브라우저 → 안내 UI
+  if (iosInApp) {
     return (
       <div className="card-brutal w-full space-y-4 text-center">
         <p className="font-bold text-sm">인앱 브라우저에서는 Google 로그인이 지원되지 않습니다</p>
-        <p className="text-xs text-muted-foreground">
-          카카오톡 · 인스타그램 등 앱 내 브라우저는 Google 정책에 의해 차단됩니다.
-          <br />
-          <span className="font-bold text-foreground">우측 상단 메뉴 → 외부 브라우저로 열기</span>를 선택하거나,
-          아래 버튼으로 링크를 복사 후 Safari / Chrome에서 직접 열어주세요.
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          우측 하단 <span className="font-bold text-foreground">공유 버튼 → Safari로 열기</span>를
+          선택하거나, 링크를 복사해 Safari / Chrome에서 직접 열어주세요.
         </p>
         <button
           type="button"
