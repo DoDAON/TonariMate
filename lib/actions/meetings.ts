@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { ROUTES } from '@/lib/constants/routes';
 
 interface JoinMeetingResult {
@@ -93,7 +93,6 @@ export async function joinMeetingWithTeam(
   }
 
   if (!teamNumber) {
-    revalidatePath(ROUTES.MY);
     return { success: true, meetingId: meeting.id, meetingName: meeting.name, teamAssigned: false };
   }
 
@@ -114,8 +113,6 @@ export async function joinMeetingWithTeam(
       .maybeSingle();
 
     if (existingTeamMember) {
-      // 이미 팀 소속 → 팀 배정 스킵
-      revalidatePath(ROUTES.MY);
       return { success: true, meetingId: meeting.id, meetingName: meeting.name, teamAssigned: false };
     }
   }
@@ -129,20 +126,16 @@ export async function joinMeetingWithTeam(
     .maybeSingle();
 
   if (!team) {
-    // 팀 없음 → 모임 참여만 처리
-    revalidatePath(ROUTES.MY);
     return { success: true, meetingId: meeting.id, meetingName: meeting.name, teamAssigned: false };
   }
 
-  // 5. 팀 배정 (RLS: team_members_self_insert_via_invite 정책으로 허용)
-  const { error: teamError } = await supabase
+  // 5. 팀 배정 (서비스 롤로 RLS 우회 — 위에서 이미 모든 조건 검증 완료)
+  const serviceClient = createServiceClient();
+  const { error: teamError } = await serviceClient
     .from('team_members')
     .insert({ team_id: team.id, user_id: userId });
 
-  revalidatePath(ROUTES.MY);
-
   if (teamError) {
-    // 팀 배정 실패해도 모임 참여는 성공
     return { success: true, meetingId: meeting.id, meetingName: meeting.name, teamAssigned: false };
   }
 
