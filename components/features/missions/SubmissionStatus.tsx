@@ -1,5 +1,9 @@
+'use client';
+
+import { useState } from 'react';
 import type { TeamSubmission } from '@/lib/queries/missions';
 import { ImageWithLightbox } from './ImageWithLightbox';
+import MissionSubmissionForm from './MissionSubmissionForm';
 
 const STATUS_MAP = {
   pending: { label: '심사 중', className: 'bg-muted text-muted-foreground' },
@@ -9,15 +13,33 @@ const STATUS_MAP = {
 
 interface SubmissionStatusProps {
   submission: TeamSubmission;
+  missionId: string;
+  meetingId: string;
+  teamId: string;
+  userId: string;
+  missionType: 'weekly' | 'team_naming';
+  missionActive: boolean;
 }
 
-export default function SubmissionStatus({ submission }: SubmissionStatusProps) {
+export default function SubmissionStatus({
+  submission,
+  missionId,
+  meetingId,
+  teamId,
+  userId,
+  missionType,
+  missionActive,
+}: SubmissionStatusProps) {
+  const [showForm, setShowForm] = useState(false);
   const status = STATUS_MAP[submission.status];
   const submittedDate = new Date(submission.created_at).toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
+
+  const canResubmit = missionActive && submission.status === 'rejected';
+  const canEdit = missionActive && submission.status === 'pending';
 
   return (
     <div className="space-y-4">
@@ -30,6 +52,14 @@ export default function SubmissionStatus({ submission }: SubmissionStatusProps) 
           <span className="font-mono font-bold text-sm">+{submission.points_awarded}pt</span>
         )}
       </div>
+
+      {/* 반려 사유 */}
+      {submission.status === 'rejected' && submission.rejection_reason && (
+        <div className="border-2 border-destructive p-3 bg-destructive/10">
+          <p className="text-xs font-bold text-destructive mb-1">반려 사유</p>
+          <p className="text-sm">{submission.rejection_reason}</p>
+        </div>
+      )}
 
       {/* 조 이름 정하기: 텍스트 표시 */}
       {submission.text_content ? (
@@ -76,6 +106,40 @@ export default function SubmissionStatus({ submission }: SubmissionStatusProps) 
         )}
         <p>{submittedDate} 제출</p>
       </div>
+
+      {/* 재제출 / 수정 버튼 */}
+      {(canResubmit || canEdit) && (
+        <div className="border-t-2 border-border pt-4">
+          <button
+            type="button"
+            onClick={() => setShowForm((v) => !v)}
+            className="btn-brutal bg-muted text-foreground text-sm"
+          >
+            {showForm ? '닫기' : canResubmit ? '재제출' : '수정'}
+          </button>
+
+          {showForm && (
+            <div className="mt-4">
+              <MissionSubmissionForm
+                missionId={missionId}
+                meetingId={meetingId}
+                teamId={teamId}
+                userId={userId}
+                missionType={missionType}
+                submissionId={submission.id}
+                initialValues={{
+                  imageUrl: submission.image_url ?? undefined,
+                  note: submission.note ?? undefined,
+                  completedAt: submission.completed_at
+                    ? submission.completed_at.split('T')[0]
+                    : undefined,
+                  textContent: submission.text_content ?? undefined,
+                }}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

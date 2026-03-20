@@ -83,6 +83,7 @@ export interface TeamSubmission {
   status: 'pending' | 'approved' | 'rejected';
   points_awarded: number;
   reviewed_at: string | null;
+  rejection_reason: string | null;
   created_at: string;
 }
 
@@ -95,7 +96,7 @@ export async function getTeamSubmission(
   const { data, error } = await supabase
     .from('mission_submissions')
     .select(
-      'id, mission_id, team_id, submitted_by, image_url, text_content, note, completed_at, status, points_awarded, reviewed_at, created_at, users!mission_submissions_submitted_by_fkey(name)'
+      'id, mission_id, team_id, submitted_by, image_url, text_content, note, completed_at, status, points_awarded, reviewed_at, rejection_reason, created_at, users!mission_submissions_submitted_by_fkey(name)'
     )
     .eq('mission_id', missionId)
     .eq('team_id', teamId)
@@ -118,6 +119,7 @@ export async function getTeamSubmission(
     status: data.status,
     points_awarded: data.points_awarded,
     reviewed_at: data.reviewed_at,
+    rejection_reason: data.rejection_reason,
     created_at: data.created_at,
   };
 }

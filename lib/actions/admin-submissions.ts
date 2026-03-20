@@ -24,7 +24,8 @@ export async function reviewSubmission(
   missionId: string,
   reviewerId: string,
   action: 'approve' | 'reject',
-  points?: number
+  points?: number,
+  rejectionReason?: string
 ): Promise<ActionResult> {
   const supabase = await createClient();
 
@@ -90,6 +91,7 @@ export async function reviewSubmission(
         status: 'rejected',
         reviewed_by: reviewerId,
         reviewed_at: new Date().toISOString(),
+        rejection_reason: rejectionReason?.trim() || null,
       })
       .eq('id', submissionId);
 
