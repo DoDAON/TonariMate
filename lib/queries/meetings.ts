@@ -56,6 +56,7 @@ export interface MeetingDetail {
   is_active: boolean;
   created_by: string;
   start_date: string | null;
+  end_date: string | null;
   memberRole: 'member' | 'admin';
   memberCount: number;
 }
@@ -97,6 +98,7 @@ export async function getMeetingDetail(
     is_active: meetingResult.data.is_active,
     created_by: meetingResult.data.created_by,
     start_date: meetingResult.data.start_date,
+    end_date: meetingResult.data.end_date,
     memberRole: membershipResult.data.role,
     memberCount: count ?? 0,
   };

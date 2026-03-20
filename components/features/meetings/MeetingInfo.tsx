@@ -30,6 +30,11 @@ export function MeetingInfo({ meeting, meetingId }: MeetingInfoProps) {
       {!meeting.is_active && (
         <p className="text-muted-foreground text-sm font-mono uppercase mt-4 border-t-2 border-foreground pt-4">
           이 모임은 종료되었습니다
+          {meeting.end_date && (
+            <span className="ml-2 normal-case">
+              ({new Date(meeting.end_date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })})
+            </span>
+          )}
         </p>
       )}
       <div className="mt-4 pt-4 border-t-2 border-foreground">

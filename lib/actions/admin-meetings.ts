@@ -101,9 +101,11 @@ export async function updateMeeting(
 export async function endMeeting(meetingId: string): Promise<ActionResult> {
   const supabase = await createClient();
 
+  const today = new Date().toISOString().split('T')[0];
+
   const { error } = await supabase
     .from('meetings')
-    .update({ is_active: false })
+    .update({ is_active: false, end_date: today })
     .eq('id', meetingId);
 
   if (error) {

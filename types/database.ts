@@ -52,6 +52,7 @@ export interface Database {
           is_active: boolean;
           created_by: string;
           start_date: string | null;
+          end_date: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -64,6 +65,7 @@ export interface Database {
           is_active?: boolean;
           created_by: string;
           start_date?: string | null;
+          end_date?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -76,6 +78,7 @@ export interface Database {
           is_active?: boolean;
           created_by?: string;
           start_date?: string | null;
+          end_date?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -230,6 +233,7 @@ export interface Database {
           points_awarded: number;
           reviewed_by: string | null;
           reviewed_at: string | null;
+          rejection_reason: string | null;
           created_at: string;
         };
         Insert: {
@@ -245,6 +249,7 @@ export interface Database {
           points_awarded?: number;
           reviewed_by?: string | null;
           reviewed_at?: string | null;
+          rejection_reason?: string | null;
           created_at?: string;
         };
         Update: {
@@ -260,6 +265,7 @@ export interface Database {
           points_awarded?: number;
           reviewed_by?: string | null;
           reviewed_at?: string | null;
+          rejection_reason?: string | null;
           created_at?: string;
         };
         Relationships: [
