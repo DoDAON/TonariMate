@@ -146,7 +146,7 @@ export default function DailyMissionSection({
         onClick={() => setShowInfo(true)}
         className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
       >
-        데일리 미션이란? ?
+        데일리 미션이란 ?
       </button>
     </div>
   );
