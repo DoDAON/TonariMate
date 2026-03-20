@@ -93,7 +93,7 @@ function MissionItem({ mission, meetingId }: MissionItemProps) {
             {mission.mission_type === 'team_naming' ? '10pt' : `${mission.points}pt`}
           </span>
         </div>
-        <p className="text-muted-foreground text-xs font-mono mt-2">
+        <p className="text-muted-foreground text-xs font-mono mt-2 break-all">
           {mission.start_date} ~ {mission.end_date}
         </p>
       </div>

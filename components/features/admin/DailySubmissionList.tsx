@@ -65,7 +65,7 @@ function SubmissionCard({
             <span className="text-xs font-mono font-bold">+1pt</span>
           )}
         </div>
-        <span className="font-mono text-xs text-muted-foreground">{sub.submitted_date}</span>
+        <span className="font-mono text-xs text-muted-foreground whitespace-nowrap">{sub.submitted_date}</span>
       </div>
 
       {/* 이미지 */}
