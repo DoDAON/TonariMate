@@ -2,7 +2,14 @@
 
 import { useState, useRef } from 'react';
 import { uploadMissionImage } from '@/lib/storage/upload';
-import { submitMission } from '@/lib/actions/submissions';
+import { submitMission, updateSubmission } from '@/lib/actions/submissions';
+
+interface InitialValues {
+  imageUrl?: string;
+  note?: string;
+  completedAt?: string;
+  textContent?: string;
+}
 
 interface MissionSubmissionFormProps {
   missionId: string;
@@ -10,6 +17,8 @@ interface MissionSubmissionFormProps {
   teamId: string;
   userId: string;
   missionType: 'weekly' | 'team_naming';
+  submissionId?: string;
+  initialValues?: InitialValues;
 }
 
 export default function MissionSubmissionForm({
@@ -18,18 +27,21 @@ export default function MissionSubmissionForm({
   teamId,
   userId,
   missionType,
+  submissionId,
+  initialValues,
 }: MissionSubmissionFormProps) {
   const isTeamNaming = missionType === 'team_naming';
+  const isUpdateMode = !!submissionId;
 
   // 일반 미션용 state
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(initialValues?.imageUrl ?? null);
   const [file, setFile] = useState<File | null>(null);
-  const [note, setNote] = useState('');
-  const [completedAt, setCompletedAt] = useState('');
+  const [note, setNote] = useState(initialValues?.note ?? '');
+  const [completedAt, setCompletedAt] = useState(initialValues?.completedAt ?? '');
   const inputRef = useRef<HTMLInputElement>(null);
 
   // 조 이름 정하기용 state
-  const [teamName, setTeamName] = useState('');
+  const [teamName, setTeamName] = useState(initialValues?.textContent ?? '');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,38 +86,36 @@ export default function MissionSubmissionForm({
     setError(null);
 
     if (isTeamNaming) {
-      const result = await submitMission(
-        missionId,
-        meetingId,
-        teamId,
-        userId,
-        null,
-        undefined,
-        undefined,
-        teamName.trim()
-      );
+      const result = isUpdateMode
+        ? await updateSubmission(submissionId!, meetingId, missionId, null, undefined, undefined, teamName.trim())
+        : await submitMission(missionId, meetingId, teamId, userId, null, undefined, undefined, teamName.trim());
       if (!result.success) {
         setError(result.error ?? '제출 실패');
         setLoading(false);
         return;
       }
     } else {
-      const uploadResult = await uploadMissionImage(file!, meetingId, missionId, teamId);
-      if (!uploadResult.success || !uploadResult.url) {
-        setError(uploadResult.error ?? '업로드 실패');
+      let imageUrl: string | null = null;
+
+      if (file) {
+        const uploadResult = await uploadMissionImage(file, meetingId, missionId, teamId);
+        if (!uploadResult.success || !uploadResult.url) {
+          setError(uploadResult.error ?? '업로드 실패');
+          setLoading(false);
+          return;
+        }
+        imageUrl = uploadResult.url;
+      } else if (isUpdateMode && initialValues?.imageUrl) {
+        imageUrl = initialValues.imageUrl;
+      } else {
+        setError('이미지를 선택해주세요');
         setLoading(false);
         return;
       }
 
-      const result = await submitMission(
-        missionId,
-        meetingId,
-        teamId,
-        userId,
-        uploadResult.url,
-        note || undefined,
-        completedAt || undefined
-      );
+      const result = isUpdateMode
+        ? await updateSubmission(submissionId!, meetingId, missionId, imageUrl, note || undefined, completedAt || undefined)
+        : await submitMission(missionId, meetingId, teamId, userId, imageUrl, note || undefined, completedAt || undefined);
       if (!result.success) {
         setError(result.error ?? '제출 실패');
         setLoading(false);
@@ -120,7 +130,9 @@ export default function MissionSubmissionForm({
   if (success) {
     return (
       <div className="card-brutal bg-muted">
-        <p className="text-sm font-bold">제출 완료! 심사 결과를 기다려주세요.</p>
+        <p className="text-sm font-bold">
+          {isUpdateMode ? '수정 완료! 심사 결과를 기다려주세요.' : '제출 완료! 심사 결과를 기다려주세요.'}
+        </p>
       </div>
     );
   }
@@ -152,7 +164,7 @@ export default function MissionSubmissionForm({
           disabled={loading || teamNameLen < 2 || teamNameLen > 10}
           className="btn-brutal w-full disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {loading ? '제출 중...' : '제출하기'}
+          {loading ? '처리 중...' : isUpdateMode ? '수정하기' : '제출하기'}
         </button>
 
         {error && <p className="text-sm text-destructive font-bold">{error}</p>}
@@ -182,11 +194,11 @@ export default function MissionSubmissionForm({
         </button>
       </div>
 
-      {preview && (
+      {(preview || (isUpdateMode && initialValues?.imageUrl && !file)) && (
         <div className="border-2 border-border p-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={preview}
+            src={preview ?? initialValues?.imageUrl}
             alt="미리보기"
             className="w-full max-h-64 object-contain"
           />
@@ -224,14 +236,14 @@ export default function MissionSubmissionForm({
         )}
       </div>
 
-      {file && (
+      {(file || (isUpdateMode && initialValues?.imageUrl)) && (
         <button
           type="button"
           onClick={handleSubmit}
           disabled={loading || noteInvalid || !completedAt}
           className="btn-brutal w-full disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {loading ? '제출 중...' : '제출하기'}
+          {loading ? '처리 중...' : isUpdateMode ? '수정하기' : '제출하기'}
         </button>
       )}
 

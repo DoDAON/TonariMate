@@ -76,3 +76,52 @@ export async function submitMission(
 
   return { success: true };
 }
+
+export async function updateSubmission(
+  submissionId: string,
+  meetingId: string,
+  missionId: string,
+  imageUrl: string | null,
+  note?: string,
+  completedAt?: string,
+  textContent?: string
+): Promise<SubmitMissionResult> {
+  const supabase = await createClient();
+
+  const { data: existing, error: fetchError } = await supabase
+    .from('mission_submissions')
+    .select('status')
+    .eq('id', submissionId)
+    .single();
+
+  if (fetchError || !existing) {
+    return { success: false, error: '제출물을 찾을 수 없습니다' };
+  }
+
+  if (existing.status !== 'pending' && existing.status !== 'rejected') {
+    return { success: false, error: '수정할 수 없는 상태입니다' };
+  }
+
+  const { error: updateError } = await supabase
+    .from('mission_submissions')
+    .update({
+      image_url: imageUrl,
+      text_content: textContent?.trim() || null,
+      note: note?.trim() || null,
+      completed_at: completedAt || null,
+      status: 'pending',
+      reviewed_by: null,
+      reviewed_at: null,
+      points_awarded: 0,
+      rejection_reason: null,
+    })
+    .eq('id', submissionId);
+
+  if (updateError) {
+    return { success: false, error: '수정에 실패했습니다. 다시 시도해주세요.' };
+  }
+
+  revalidatePath(ROUTES.MISSION(meetingId, missionId));
+
+  return { success: true };
+}

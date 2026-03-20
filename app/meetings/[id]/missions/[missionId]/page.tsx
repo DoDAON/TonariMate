@@ -154,7 +154,15 @@ export default async function MissionPage({ params }: MissionPageProps) {
 
           {submission ? (
             <>
-              <SubmissionStatus submission={submission} />
+              <SubmissionStatus
+                submission={submission}
+                missionId={missionId}
+                meetingId={meetingId}
+                teamId={team?.id ?? ''}
+                userId={user.id}
+                missionType={mission.mission_type}
+                missionActive={mission.status === 'active' && !meetingEnded}
+              />
               {meetingEnded && (
                 <p className="mt-3 text-xs text-muted-foreground">
                   종료된 모임입니다.
