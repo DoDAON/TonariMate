@@ -5,17 +5,25 @@ import { ROUTES } from '@/lib/constants/routes';
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next');
 
   if (!code) {
     return NextResponse.redirect(`${origin}${ROUTES.LOGIN}`);
   }
 
+  // next URL은 OAuth redirectTo 대신 쿠키로 전달 (Supabase 허용 URL 검증 우회)
+  const rawNext = request.headers.get('cookie')
+    ?.split(';')
+    .find((c) => c.trim().startsWith('auth_next='))
+    ?.split('=')[1];
+  const next = rawNext ? decodeURIComponent(rawNext) : null;
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error || !data.user) {
-    return NextResponse.redirect(`${origin}${ROUTES.LOGIN}`);
+    const res = NextResponse.redirect(`${origin}${ROUTES.LOGIN}`);
+    res.cookies.delete('auth_next');
+    return res;
   }
 
   // exchangeCodeForSession 결과에서 user를 바로 사용 (추가 getUser 호출 불필요)
@@ -28,15 +36,19 @@ export async function GET(request: Request) {
     .eq('id', user.id)
     .single();
 
+  const clearCookie = (res: NextResponse) => {
+    res.cookies.delete('auth_next');
+    return res;
+  };
+
   if (existingUser) {
-    // 기존 유저 → next가 있으면 해당 경로로, 없으면 마이페이지로
-    const destination = next ? next : ROUTES.MY;
-    return NextResponse.redirect(`${origin}${destination}`);
+    const destination = next ?? ROUTES.MY;
+    return clearCookie(NextResponse.redirect(`${origin}${destination}`));
   }
 
   // 신규 유저 → 프로필 완성 페이지로 (next가 있으면 signup에도 전달)
   const signupUrl = next
     ? `${ROUTES.SIGNUP}?next=${encodeURIComponent(next)}`
     : ROUTES.SIGNUP;
-  return NextResponse.redirect(`${origin}${signupUrl}`);
+  return clearCookie(NextResponse.redirect(`${origin}${signupUrl}`));
 }

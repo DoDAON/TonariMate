@@ -46,14 +46,16 @@ export function GoogleLoginButton({ nextUrl }: GoogleLoginButtonProps = {}) {
   }, []);
 
   const handleGoogleLogin = async () => {
+    if (nextUrl) {
+      // OAuth redirectTo URL에 쿼리 파라미터를 붙이면 Supabase 허용 URL 검증에 걸림
+      // 쿠키에 저장 후 콜백에서 읽는 방식으로 우회
+      document.cookie = `auth_next=${encodeURIComponent(nextUrl)};path=/;max-age=300;samesite=lax`;
+    }
     const supabase = createClient();
-    const callbackUrl = nextUrl
-      ? `${window.location.origin}${ROUTES.CALLBACK}?next=${encodeURIComponent(nextUrl)}`
-      : `${window.location.origin}${ROUTES.CALLBACK}`;
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: callbackUrl,
+        redirectTo: `${window.location.origin}${ROUTES.CALLBACK}`,
         queryParams: { prompt: 'select_account' },
       },
     });
