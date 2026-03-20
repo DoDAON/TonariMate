@@ -104,6 +104,7 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
               weeklyCount={weeklyDailyCount}
               meetingActive={meeting.is_active}
               hasTeam={!!team}
+              startDate={meeting.start_date}
             />
           </div>
 

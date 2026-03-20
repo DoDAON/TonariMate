@@ -27,6 +27,10 @@ export async function submitDailyMission(
     .eq('id', meetingId)
     .single();
 
+  if (meeting?.start_date && today < meeting.start_date) {
+    return { success: false, error: '아직 데일리 미션 기간이 시작되지 않았습니다' };
+  }
+
   const weekStart = getWeekStart(today, meeting?.start_date);
 
   // 오늘 이미 제출 여부 확인

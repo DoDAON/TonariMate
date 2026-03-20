@@ -40,10 +40,12 @@ export default async function DailyMissionPage({ params }: DailyPageProps) {
 
   if (!meeting?.is_active) redirect(ROUTES.MEETING(meetingId));
 
+  const today = getTodayStr();
+  if (meeting.start_date && today < meeting.start_date) redirect(ROUTES.MEETING(meetingId));
+
   const team = await getUserTeamInMeeting(meetingId, user.id);
   if (!team) redirect(ROUTES.MEETING(meetingId));
 
-  const today = getTodayStr();
   const weekStart = getWeekStart(today, meeting.start_date);
 
   const [todaySubmission, weeklyCount] = await Promise.all([

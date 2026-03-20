@@ -11,6 +11,7 @@ interface DailyMissionStatusProps {
   weeklyCount: number;
   meetingActive: boolean;
   hasTeam: boolean;
+  startDate?: string | null;
 }
 
 const STATUS_MAP = {
@@ -54,8 +55,12 @@ export function DailyMissionStatus({
   weeklyCount,
   meetingActive,
   hasTeam,
+  startDate,
 }: DailyMissionStatusProps) {
   const [showInfo, setShowInfo] = useState(false);
+
+  const today = new Date().toISOString().split('T')[0];
+  const notStarted = !!startDate && today < startDate;
 
   // 이번 주 진행 바
   const progressBar = (
@@ -89,6 +94,16 @@ export function DailyMissionStatus({
     return (
       <div className="card-brutal opacity-60">
         <p className="text-sm text-muted-foreground">종료된 모임입니다.</p>
+      </div>
+    );
+  }
+
+  if (notStarted) {
+    return (
+      <div className="card-brutal opacity-60">
+        <p className="text-sm text-muted-foreground">
+          데일리 미션은 <span className="font-bold text-foreground">{startDate}</span> 부터 시작됩니다.
+        </p>
       </div>
     );
   }
