@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { ROUTES } from '@/lib/constants/routes';
 
@@ -7,7 +8,21 @@ interface GoogleLoginButtonProps {
   nextUrl?: string;
 }
 
+function detectInAppBrowser(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  return /KAKAOTALK|Instagram|FBAN|FBAV|Line\/|NAVER|Snapchat/i.test(ua)
+    || (/Android/i.test(ua) && /wv\b/.test(ua));
+}
+
 export function GoogleLoginButton({ nextUrl }: GoogleLoginButtonProps = {}) {
+  const [isInApp, setIsInApp] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setIsInApp(detectInAppBrowser());
+  }, []);
+
   const handleGoogleLogin = async () => {
     const supabase = createClient();
     const callbackUrl = nextUrl
@@ -23,6 +38,34 @@ export function GoogleLoginButton({ nextUrl }: GoogleLoginButtonProps = {}) {
       },
     });
   };
+
+  const handleCopyUrl = async () => {
+    const url = window.location.href;
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (isInApp) {
+    return (
+      <div className="card-brutal w-full space-y-4 text-center">
+        <p className="font-bold text-sm">인앱 브라우저에서는 Google 로그인이 지원되지 않습니다</p>
+        <p className="text-xs text-muted-foreground">
+          카카오톡 · 인스타그램 등 앱 내 브라우저는 Google 정책에 의해 차단됩니다.
+          <br />
+          <span className="font-bold text-foreground">우측 상단 메뉴 → 외부 브라우저로 열기</span>를 선택하거나,
+          아래 버튼으로 링크를 복사 후 Safari / Chrome에서 직접 열어주세요.
+        </p>
+        <button
+          type="button"
+          onClick={handleCopyUrl}
+          className="btn-brutal w-full bg-muted text-foreground"
+        >
+          {copied ? '복사됨!' : '링크 복사하기'}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <button
