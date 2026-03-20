@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { ROUTES } from '@/lib/constants/routes';
 
 // 인증 없이 접근 가능한 경로
-const PUBLIC_PATHS = [ROUTES.HOME, ROUTES.LOGIN, ROUTES.CALLBACK];
+const PUBLIC_PATHS = [ROUTES.HOME, ROUTES.LOGIN, ROUTES.CALLBACK, ROUTES.JOIN];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({

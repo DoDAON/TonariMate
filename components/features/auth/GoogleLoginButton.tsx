@@ -3,13 +3,20 @@
 import { createClient } from '@/lib/supabase/client';
 import { ROUTES } from '@/lib/constants/routes';
 
-export function GoogleLoginButton() {
+interface GoogleLoginButtonProps {
+  nextUrl?: string;
+}
+
+export function GoogleLoginButton({ nextUrl }: GoogleLoginButtonProps = {}) {
   const handleGoogleLogin = async () => {
     const supabase = createClient();
+    const callbackUrl = nextUrl
+      ? `${window.location.origin}${ROUTES.CALLBACK}?next=${encodeURIComponent(nextUrl)}`
+      : `${window.location.origin}${ROUTES.CALLBACK}`;
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}${ROUTES.CALLBACK}`,
+        redirectTo: callbackUrl,
         queryParams: {
           prompt: 'select_account',
         },

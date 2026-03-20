@@ -10,6 +10,14 @@ interface JoinMeetingResult {
   error?: string;
 }
 
+interface JoinWithTeamResult {
+  success: boolean;
+  meetingId?: string;
+  meetingName?: string;
+  error?: string;
+  teamAssigned?: boolean;
+}
+
 export async function joinMeeting(userId: string, inviteCode: string): Promise<JoinMeetingResult> {
   const trimmed = inviteCode.trim();
   if (!trimmed) {
@@ -49,4 +57,94 @@ export async function joinMeeting(userId: string, inviteCode: string): Promise<J
   revalidatePath(ROUTES.MY);
 
   return { success: true, meetingName: meeting.name };
+}
+
+export async function joinMeetingWithTeam(
+  userId: string,
+  inviteCode: string,
+  teamNumber: number | null,
+): Promise<JoinWithTeamResult> {
+  const trimmed = inviteCode.trim().toUpperCase();
+  if (!trimmed) {
+    return { success: false, error: '초대 코드가 없습니다' };
+  }
+
+  const supabase = await createClient();
+
+  // 1. 초대 코드로 모임 조회
+  const { data: meeting } = await supabase
+    .from('meetings')
+    .select('id, name')
+    .eq('invite_code', trimmed)
+    .eq('is_active', true)
+    .single();
+
+  if (!meeting) {
+    return { success: false, error: '유효하지 않은 초대 코드입니다' };
+  }
+
+  // 2. 모임 참여 (이미 참여 중이면 무시하고 계속 진행)
+  const { error: joinError } = await supabase
+    .from('meeting_members')
+    .insert({ meeting_id: meeting.id, user_id: userId, role: 'member' });
+
+  if (joinError && joinError.code !== '23505') {
+    return { success: false, error: '모임 참여에 실패했습니다' };
+  }
+
+  if (!teamNumber) {
+    revalidatePath(ROUTES.MY);
+    return { success: true, meetingId: meeting.id, meetingName: meeting.name, teamAssigned: false };
+  }
+
+  // 3. 이미 이 모임에서 팀 소속인지 확인
+  const { data: meetingTeams } = await supabase
+    .from('teams')
+    .select('id')
+    .eq('meeting_id', meeting.id);
+
+  const teamIds = meetingTeams?.map((t) => t.id) ?? [];
+
+  if (teamIds.length > 0) {
+    const { data: existingTeamMember } = await supabase
+      .from('team_members')
+      .select('id')
+      .eq('user_id', userId)
+      .in('team_id', teamIds)
+      .maybeSingle();
+
+    if (existingTeamMember) {
+      // 이미 팀 소속 → 팀 배정 스킵
+      revalidatePath(ROUTES.MY);
+      return { success: true, meetingId: meeting.id, meetingName: meeting.name, teamAssigned: false };
+    }
+  }
+
+  // 4. team_number로 팀 조회
+  const { data: team } = await supabase
+    .from('teams')
+    .select('id')
+    .eq('meeting_id', meeting.id)
+    .eq('team_number', teamNumber)
+    .maybeSingle();
+
+  if (!team) {
+    // 팀 없음 → 모임 참여만 처리
+    revalidatePath(ROUTES.MY);
+    return { success: true, meetingId: meeting.id, meetingName: meeting.name, teamAssigned: false };
+  }
+
+  // 5. 팀 배정 (RLS: team_members_self_insert_via_invite 정책으로 허용)
+  const { error: teamError } = await supabase
+    .from('team_members')
+    .insert({ team_id: team.id, user_id: userId });
+
+  revalidatePath(ROUTES.MY);
+
+  if (teamError) {
+    // 팀 배정 실패해도 모임 참여는 성공
+    return { success: true, meetingId: meeting.id, meetingName: meeting.name, teamAssigned: false };
+  }
+
+  return { success: true, meetingId: meeting.id, meetingName: meeting.name, teamAssigned: true };
 }

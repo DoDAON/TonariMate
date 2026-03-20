@@ -27,6 +27,9 @@ export const ROUTES = {
 
   MEETING_ANNOUNCEMENTS: (id: string) => `/meetings/${id}/announcements`,
 
+  // 초대 링크
+  JOIN: '/join',
+
   // 인증
   LOGIN: '/login',
   SIGNUP: '/signup',

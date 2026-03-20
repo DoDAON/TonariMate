@@ -5,6 +5,7 @@ import { ROUTES } from '@/lib/constants/routes';
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
+  const next = searchParams.get('next');
 
   if (!code) {
     return NextResponse.redirect(`${origin}${ROUTES.LOGIN}`);
@@ -28,10 +29,14 @@ export async function GET(request: Request) {
     .single();
 
   if (existingUser) {
-    // 기존 유저 → 마이페이지로
-    return NextResponse.redirect(`${origin}${ROUTES.MY}`);
+    // 기존 유저 → next가 있으면 해당 경로로, 없으면 마이페이지로
+    const destination = next ? next : ROUTES.MY;
+    return NextResponse.redirect(`${origin}${destination}`);
   }
 
-  // 신규 유저 → 프로필 완성 페이지로
-  return NextResponse.redirect(`${origin}${ROUTES.SIGNUP}`);
+  // 신규 유저 → 프로필 완성 페이지로 (next가 있으면 signup에도 전달)
+  const signupUrl = next
+    ? `${ROUTES.SIGNUP}?next=${encodeURIComponent(next)}`
+    : ROUTES.SIGNUP;
+  return NextResponse.redirect(`${origin}${signupUrl}`);
 }

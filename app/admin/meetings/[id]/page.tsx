@@ -6,6 +6,7 @@ import { Header } from '@/components/layouts/Header';
 import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { requireAdmin } from '@/lib/queries/admin';
 import { InviteCodeDisplay } from '@/components/features/admin/InviteCodeDisplay';
+import { TeamInviteLinks } from '@/components/features/admin/TeamInviteLinks';
 
 interface AdminMeetingPageProps {
   params: Promise<{ id: string }>;
@@ -30,10 +31,11 @@ export default async function AdminMeetingPage({ params }: AdminMeetingPageProps
 
   if (error || !meeting) notFound();
 
-  const [membersResult, teamsResult, missionsResult] = await Promise.all([
+  const [membersResult, teamsResult, missionsResult, teamsListResult] = await Promise.all([
     supabase.from('meeting_members').select('*', { count: 'exact', head: true }).eq('meeting_id', id),
     supabase.from('teams').select('*', { count: 'exact', head: true }).eq('meeting_id', id),
     supabase.from('missions').select('*', { count: 'exact', head: true }).eq('meeting_id', id),
+    supabase.from('teams').select('id, team_number, name').eq('meeting_id', id).order('team_number'),
   ]);
 
   const navItems = [
@@ -90,6 +92,15 @@ export default async function AdminMeetingPage({ params }: AdminMeetingPageProps
         <div className="card-brutal mb-6">
           <h2 className="text-lg font-black uppercase tracking-tight mb-3">초대코드</h2>
           <InviteCodeDisplay meetingId={id} inviteCode={meeting.invite_code} />
+        </div>
+
+        {/* 팀별 초대 링크 */}
+        <div className="card-brutal mb-6">
+          <h2 className="text-lg font-black uppercase tracking-tight mb-3">팀별 초대 링크</h2>
+          <TeamInviteLinks
+            teams={teamsListResult.data ?? []}
+            inviteCode={meeting.invite_code}
+          />
         </div>
 
         {/* 관리 네비게이션 */}

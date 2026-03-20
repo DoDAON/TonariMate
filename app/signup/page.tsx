@@ -103,7 +103,9 @@ export default function SignupPage() {
       return;
     }
 
-    router.push(ROUTES.MY);
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get('next');
+    router.push(next || ROUTES.MY);
   };
 
   const displayAvatar = avatarPreview ?? googleAvatarUrl;
