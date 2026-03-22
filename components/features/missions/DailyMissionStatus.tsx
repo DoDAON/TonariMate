@@ -59,7 +59,7 @@ export function DailyMissionStatus({
 }: DailyMissionStatusProps) {
   const [showInfo, setShowInfo] = useState(false);
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date());
   const notStarted = !!startDate && today < startDate;
 
   // 이번 주 진행 바

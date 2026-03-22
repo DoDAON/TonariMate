@@ -52,13 +52,9 @@ export function getWeekStart(todayStr: string, meetingStartDate?: string | null)
   return weekStart.toISOString().split('T')[0];
 }
 
-/** 오늘 날짜 (로컬 기준) */
+/** 오늘 날짜 (KST 기준) */
 export function getTodayStr(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date());
 }
 
 /** 오늘 유저의 데일리 제출 여부 */

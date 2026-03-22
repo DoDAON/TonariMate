@@ -65,8 +65,7 @@ export default function DailyMissionSection({
 
     setLoading(true);
 
-    const today = new Date();
-    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const dateStr = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date());
 
     const uploadResult = await uploadDailyImage(file, meetingId, userId, dateStr);
     if (!uploadResult.success || !uploadResult.url) {
