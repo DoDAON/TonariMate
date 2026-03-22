@@ -36,7 +36,7 @@ export default function DailyMissionSection({
   const [showInfo, setShowInfo] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const isWeekComplete = weeklyCount >= 3;
+  const isWeekComplete = weeklyCount >= 5;
   const canSubmitToday = !todaySubmission && !isWeekComplete;
 
   const noteLen = note.trim().length;
@@ -127,7 +127,7 @@ export default function DailyMissionSection({
     <div className="space-y-2 mb-4">
       <div className="flex items-center gap-3">
         <div className="flex gap-1.5">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
               className={`w-8 h-8 border-2 border-foreground flex items-center justify-center text-xs font-bold ${
@@ -138,7 +138,7 @@ export default function DailyMissionSection({
             </div>
           ))}
         </div>
-        <span className="text-sm text-muted-foreground font-mono">{weeklyCount}/3회</span>
+        <span className="text-sm text-muted-foreground font-mono">{weeklyCount}/5회</span>
       </div>
       <button
         type="button"
@@ -162,7 +162,7 @@ export default function DailyMissionSection({
             오늘 {status.label}
           </span>
           {todaySubmission.status === 'approved' && (
-            <span className="font-mono font-bold text-sm">+1pt</span>
+            <span className="font-mono font-bold text-sm">+3pt</span>
           )}
         </div>
         {todaySubmission.image_url && (
@@ -176,7 +176,7 @@ export default function DailyMissionSection({
             />
           </div>
         )}
-        <p className="text-xs text-muted-foreground">하루 1회 · 주 최대 3회 · 1pt 고정 · 월~일 기준</p>
+        <p className="text-xs text-muted-foreground">하루 1회 · 주 최대 5회 · 3pt 고정 · 월~일 기준</p>
       </div>
     );
   }
@@ -188,9 +188,9 @@ export default function DailyMissionSection({
         {dailyInfoModal}
         {progressBar}
         <div className="border-2 border-border p-4 bg-muted">
-          <p className="text-sm font-bold">이번 주 데일리 미션 완료! (3/3회)</p>
+          <p className="text-sm font-bold">이번 주 데일리 미션 완료! (5/5회)</p>
         </div>
-        <p className="text-xs text-muted-foreground">하루 1회 · 주 최대 3회 · 1pt 고정 · 월~일 기준</p>
+        <p className="text-xs text-muted-foreground">하루 1회 · 주 최대 5회 · 3pt 고정 · 월~일 기준</p>
       </div>
     );
   }
@@ -271,7 +271,7 @@ export default function DailyMissionSection({
         </button>
       )}
 
-      <p className="text-xs text-muted-foreground">하루 1회 · 주 최대 3회 · 1pt 고정 · 월~일 기준</p>
+      <p className="text-xs text-muted-foreground">하루 1회 · 주 최대 5회 · 3pt 고정 · 월~일 기준</p>
     </div>
   );
 }

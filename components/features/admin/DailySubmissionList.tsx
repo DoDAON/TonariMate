@@ -62,7 +62,7 @@ function SubmissionCard({
             {STATUS_LABEL[sub.status]}
           </span>
           {sub.status === 'approved' && (
-            <span className="text-xs font-mono font-bold">+1pt</span>
+            <span className="text-xs font-mono font-bold">+3pt</span>
           )}
         </div>
         <span className="font-mono text-xs text-muted-foreground whitespace-nowrap">{sub.submitted_date}</span>
@@ -99,7 +99,7 @@ function SubmissionCard({
             disabled={loading}
             className="btn-brutal text-sm flex-1"
           >
-            {loading ? '...' : '승인 (+1pt)'}
+            {loading ? '...' : '승인 (+3pt)'}
           </button>
           <button
             type="button"

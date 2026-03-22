@@ -53,8 +53,8 @@ export default async function DailyMissionPage({ params }: DailyPageProps) {
     getUserWeeklyDailyCount(meetingId, user.id, weekStart),
   ]);
 
-  // 이미 오늘 제출했거나 주 3회 완료시 모임 페이지로 리다이렉트
-  if (todaySubmission || weeklyCount >= 3) {
+  // 이미 오늘 제출했거나 주 5회 완료시 모임 페이지로 리다이렉트
+  if (todaySubmission || weeklyCount >= 5) {
     redirect(ROUTES.MEETING(meetingId));
   }
 
@@ -77,14 +77,14 @@ export default async function DailyMissionPage({ params }: DailyPageProps) {
             <span className="px-3 py-1 text-xs font-bold uppercase border-2 border-border bg-primary text-primary-foreground">
               데일리 미션
             </span>
-            <span className="font-mono font-bold">1pt</span>
+            <span className="font-mono font-bold">3pt</span>
           </div>
           <h1 className="text-2xl font-black tracking-tight uppercase mb-2">오늘의 데일리 미션</h1>
           <p className="text-sm text-muted-foreground">
-            이번 주 진행 상황: {weeklyCount}/3회
+            이번 주 진행 상황: {weeklyCount}/5회
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            하루 1회 · 주 최대 3회 · 1pt 고정 · 월~일 기준
+            하루 1회 · 주 최대 5회 · 3pt 고정 · 월~일 기준
           </p>
         </article>
 

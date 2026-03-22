@@ -67,7 +67,7 @@ export function DailyMissionStatus({
     <div className="space-y-2 mb-4">
       <div className="flex items-center gap-3">
         <div className="flex gap-1.5">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
               className={`w-8 h-8 border-2 border-foreground flex items-center justify-center text-xs font-bold ${
@@ -78,7 +78,7 @@ export function DailyMissionStatus({
             </div>
           ))}
         </div>
-        <span className="text-sm text-muted-foreground font-mono">{weeklyCount}/3회</span>
+        <span className="text-sm text-muted-foreground font-mono">{weeklyCount}/5회</span>
       </div>
       <button
         type="button"
@@ -116,7 +116,7 @@ export function DailyMissionStatus({
     );
   }
 
-  const isWeekComplete = weeklyCount >= 3;
+  const isWeekComplete = weeklyCount >= 5;
 
   return (
     <div className="card-brutal space-y-3">
@@ -143,7 +143,7 @@ export function DailyMissionStatus({
         </Link>
       )}
 
-      <p className="text-xs text-muted-foreground">하루 1회 · 주 최대 3회 · 1pt 고정</p>
+      <p className="text-xs text-muted-foreground">하루 1회 · 주 최대 5회 · 3pt 고정</p>
     </div>
   );
 }

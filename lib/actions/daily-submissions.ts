@@ -55,8 +55,8 @@ export async function submitDailyMission(
     .eq('week_start', weekStart)
     .neq('status', 'rejected');
 
-  if ((count ?? 0) >= 3) {
-    return { success: false, error: '이번 주 데일리 미션 제출 횟수(3회)를 초과했습니다' };
+  if ((count ?? 0) >= 5) {
+    return { success: false, error: '이번 주 데일리 미션 제출 횟수(5회)를 초과했습니다' };
   }
 
   const { error } = await supabase.from('daily_submissions').insert({
@@ -109,7 +109,7 @@ export async function reviewDailySubmission(
       .from('daily_submissions')
       .update({
         status: 'approved',
-        points_awarded: 1,
+        points_awarded: 3,
         reviewed_by: reviewerId,
         reviewed_at: new Date().toISOString(),
       })
@@ -123,7 +123,7 @@ export async function reviewDailySubmission(
     const { error: pointsError } = await supabase.from('points').insert({
       team_id: submission.team_id,
       mission_id: null,
-      amount: 1,
+      amount: 3,
       reason: '데일리 미션 완료',
     });
 
