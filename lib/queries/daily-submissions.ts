@@ -24,32 +24,15 @@ export interface DailySubmissionWithUser extends DailySubmission {
 }
 
 /**
- * 오늘이 속한 주의 시작일 계산.
- * meetingStartDate가 있으면 조모임 시작일 기준 7일 단위 주 계산.
- * 없으면 캘린더 월요일 기준 계산 (폴백).
+ * 오늘이 속한 주의 시작일 계산 (항상 캘린더 월요일 기준).
  */
-export function getWeekStart(todayStr: string, meetingStartDate?: string | null): string {
-  if (!meetingStartDate) {
-    // 폴백: 캘린더 월요일 기준
-    const date = new Date(todayStr);
-    const day = date.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    const monday = new Date(date);
-    monday.setDate(date.getDate() + diff);
-    return monday.toISOString().split('T')[0];
-  }
-
-  const today = new Date(todayStr);
-  const start = new Date(meetingStartDate);
-
-  // 아직 모임 시작 전이면 첫 번째 주 시작일 반환
-  if (today < start) return meetingStartDate;
-
-  const daysDiff = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  const weekNumber = Math.floor(daysDiff / 7);
-  const weekStart = new Date(start);
-  weekStart.setDate(start.getDate() + weekNumber * 7);
-  return weekStart.toISOString().split('T')[0];
+export function getWeekStart(todayStr: string, _meetingStartDate?: string | null): string {
+  const date = new Date(todayStr);
+  const day = date.getDay(); // 0=일, 1=월 ... 6=토
+  const diff = day === 0 ? -6 : 1 - day;
+  const monday = new Date(date);
+  monday.setDate(date.getDate() + diff);
+  return monday.toISOString().split('T')[0];
 }
 
 /** 오늘 날짜 (KST 기준) */
