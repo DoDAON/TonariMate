@@ -15,7 +15,7 @@ export function TeamCard({ team }: TeamCardProps) {
         </h3>
         <span className="font-mono font-bold">{team.total_points}pt</span>
       </div>
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 mb-4">
         {team.members.map((member) => (
           <div key={member.id} className="flex items-center gap-2">
             {member.avatar_url ? (
@@ -35,6 +35,7 @@ export function TeamCard({ team }: TeamCardProps) {
           </div>
         ))}
       </div>
+      <p className="text-xs text-muted-foreground">데일리 제출 현황을 보려면 클릭</p>
     </div>
   );
 }

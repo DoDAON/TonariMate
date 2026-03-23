@@ -40,7 +40,7 @@ function DailyInfoModal({ onClose }: { onClose: () => void }) {
           <p>조원과 함께 활동을 하고 인증하기</p>
           <p className="text-muted-foreground">(예: 카페가기, 식사하기, 게임하기, 공부하기 등 함께라면 무엇이든!)</p>
           <ul className="space-y-1">
-            <li>■ 데일리 미션은 수행 당 1점이 부여됩니다</li>
+            <li>■ 데일리 미션은 수행 당 3점이 부여됩니다</li>
             <li>■ 4인 이상 참여 시 데일리 미션 포인트를 획득할 수 있습니다</li>
           </ul>
         </div>
