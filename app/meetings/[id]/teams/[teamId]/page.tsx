@@ -52,7 +52,10 @@ export default async function TeamPage({ params, searchParams }: TeamPageProps) 
   const currentWeekStart = getWeekStart(today, meeting?.start_date);
   const selectedWeek = week || currentWeekStart;
 
-  // 지난 4주 목록 생성
+  // 지난 4주 목록 생성 (모임 시작 주 이전은 제외)
+  const meetingWeekStart = meeting?.start_date
+    ? getWeekStart(meeting.start_date)
+    : null;
   const weeks: string[] = [];
   for (let i = 0; i < 4; i++) {
     const ws = getWeekStart(
@@ -61,7 +64,9 @@ export default async function TeamPage({ params, searchParams }: TeamPageProps) 
         .split('T')[0],
       meeting?.start_date
     );
-    if (!weeks.includes(ws)) weeks.push(ws);
+    if (!weeks.includes(ws) && (!meetingWeekStart || ws >= meetingWeekStart)) {
+      weeks.push(ws);
+    }
   }
 
   const [team, history, dailySubmissions] = await Promise.all([

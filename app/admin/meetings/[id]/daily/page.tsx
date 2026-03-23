@@ -38,7 +38,10 @@ export default async function AdminDailyPage({ params, searchParams }: DailyPage
 
   const submissions = await getMeetingDailySubmissions(meetingId, selectedWeek);
 
-  // 지난 4주 목록 생성 (주 탐색용, 조모임 시작일 기준)
+  // 지난 4주 목록 생성 (모임 시작 주 이전은 제외)
+  const meetingWeekStart = meeting?.start_date
+    ? getWeekStart(meeting.start_date)
+    : null;
   const weeks: string[] = [];
   for (let i = 0; i < 4; i++) {
     const weekStart = getWeekStart(
@@ -47,7 +50,7 @@ export default async function AdminDailyPage({ params, searchParams }: DailyPage
         .split('T')[0],
       meeting?.start_date
     );
-    if (!weeks.includes(weekStart)) {
+    if (!weeks.includes(weekStart) && (!meetingWeekStart || weekStart >= meetingWeekStart)) {
       weeks.push(weekStart);
     }
   }
