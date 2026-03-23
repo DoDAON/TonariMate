@@ -138,9 +138,9 @@ export default async function TeamPage({ params, searchParams }: TeamPageProps) 
             />
           </div>
 
-          {/* 1·2·3 슬롯 */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[0, 1, 2].map((idx) => {
+          {/* 1~5 슬롯 */}
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+            {[0, 1, 2, 3, 4].map((idx) => {
               const sub = dailySubmissions[idx] ?? null;
               return (
                 <div key={idx} className="border-2 border-foreground p-4 space-y-3">
@@ -190,7 +190,7 @@ export default async function TeamPage({ params, searchParams }: TeamPageProps) 
                         </p>
                       )}
                       {sub.status === 'approved' && (
-                        <p className="text-xs font-mono font-bold">+1pt</p>
+                        <p className="text-xs font-mono font-bold">+3pt</p>
                       )}
                     </>
                   ) : (
