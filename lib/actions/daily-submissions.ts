@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { ROUTES } from '@/lib/constants/routes';
-import { getTodayStr, getWeekStart } from '@/lib/queries/daily-submissions';
+import { getTodayStr, getWeekStart, getWeekEnd } from '@/lib/queries/daily-submissions';
 
 interface ActionResult {
   success: boolean;
@@ -18,6 +18,10 @@ export async function submitDailyMission(
   completedAt: string,
   note?: string
 ): Promise<ActionResult> {
+  if (!completedAt) {
+    return { success: false, error: '수행 날짜를 입력해주세요' };
+  }
+
   const supabase = await createClient();
   const today = getTodayStr();
 
@@ -31,19 +35,30 @@ export async function submitDailyMission(
     return { success: false, error: '아직 데일리 미션 기간이 시작되지 않았습니다' };
   }
 
+  // completedAt이 이번 주(KST 월~일) 범위인지 검증
   const weekStart = getWeekStart(today, meeting?.start_date);
+  const weekEnd = getWeekEnd(weekStart);
 
-  // 오늘 이미 제출 여부 확인
+  if (completedAt < weekStart || completedAt > weekEnd) {
+    return { success: false, error: '이번 주(월~일) 날짜만 선택할 수 있습니다' };
+  }
+
+  // 미래 날짜 제출 금지
+  if (completedAt > today) {
+    return { success: false, error: '미래 날짜로 제출할 수 없습니다' };
+  }
+
+  // 해당 날짜 이미 제출 여부 확인
   const { data: existing } = await supabase
     .from('daily_submissions')
     .select('id')
     .eq('meeting_id', meetingId)
     .eq('submitted_by', userId)
-    .eq('submitted_date', today)
+    .eq('submitted_date', completedAt)
     .single();
 
   if (existing) {
-    return { success: false, error: '오늘 이미 데일리 미션을 제출했습니다' };
+    return { success: false, error: '해당 날짜에 이미 데일리 미션을 제출했습니다' };
   }
 
   // 이번 주 제출 횟수 확인 (rejected 제외)
@@ -63,10 +78,10 @@ export async function submitDailyMission(
     meeting_id: meetingId,
     team_id: teamId,
     submitted_by: userId,
-    submitted_date: today,
+    submitted_date: completedAt,
     week_start: weekStart,
     image_url: imageUrl,
-    completed_at: completedAt || null,
+    completed_at: completedAt,
     note: note?.trim() || null,
   });
 

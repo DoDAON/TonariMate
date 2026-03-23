@@ -5,7 +5,7 @@ import { ROUTES } from '@/lib/constants/routes';
 import { Header } from '@/components/layouts/Header';
 import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { getUserTeamInMeeting } from '@/lib/queries/teams';
-import { getUserTodayDailySubmission, getUserWeeklyDailyCount, getWeekStart, getTodayStr } from '@/lib/queries/daily-submissions';
+import { getUserWeekDailySubmissions, getUserWeeklyDailyCount, getWeekStart, getTodayStr } from '@/lib/queries/daily-submissions';
 import DailyMissionSection from '@/components/features/missions/DailyMissionSection';
 
 interface DailyPageProps {
@@ -48,13 +48,13 @@ export default async function DailyMissionPage({ params }: DailyPageProps) {
 
   const weekStart = getWeekStart(today, meeting.start_date);
 
-  const [todaySubmission, weeklyCount] = await Promise.all([
-    getUserTodayDailySubmission(meetingId, user.id),
+  const [weekSubmissions, weeklyCount] = await Promise.all([
+    getUserWeekDailySubmissions(meetingId, user.id, weekStart),
     getUserWeeklyDailyCount(meetingId, user.id, weekStart),
   ]);
 
-  // 이미 오늘 제출했거나 주 5회 완료시 모임 페이지로 리다이렉트
-  if (todaySubmission || weeklyCount >= 5) {
+  // 주 5회 완료 시 모임 페이지로 리다이렉트
+  if (weeklyCount >= 5) {
     redirect(ROUTES.MEETING(meetingId));
   }
 
@@ -79,7 +79,7 @@ export default async function DailyMissionPage({ params }: DailyPageProps) {
             </span>
             <span className="font-mono font-bold">3pt</span>
           </div>
-          <h1 className="text-2xl font-black tracking-tight uppercase mb-2">오늘의 데일리 미션</h1>
+          <h1 className="text-2xl font-black tracking-tight uppercase mb-2">이번 주 데일리 미션</h1>
           <p className="text-sm text-muted-foreground">
             이번 주 진행 상황: {weeklyCount}/5회
           </p>
@@ -94,7 +94,7 @@ export default async function DailyMissionPage({ params }: DailyPageProps) {
             meetingId={meetingId}
             teamId={team.id}
             userId={user.id}
-            todaySubmission={null}
+            weekSubmissions={weekSubmissions}
             weeklyCount={weeklyCount}
           />
         </section>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { toast } from 'sonner';
 import { uploadDailyImage } from '@/lib/storage/upload';
 import { submitDailyMission } from '@/lib/actions/daily-submissions';
@@ -11,7 +11,7 @@ interface DailyMissionSectionProps {
   meetingId: string;
   teamId: string;
   userId: string;
-  todaySubmission: DailySubmission | null;
+  weekSubmissions: DailySubmission[];
   weeklyCount: number; // rejected 제외 이번 주 제출 횟수
 }
 
@@ -21,11 +21,31 @@ const STATUS_MAP = {
   rejected: { label: '반려', className: 'bg-destructive text-destructive-foreground' },
 } as const;
 
+/** KST 기준 오늘 날짜 문자열 */
+function getKSTToday(): string {
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date());
+}
+
+/** KST 기준 이번 주 월요일(시작) ~ 일요일(끝) 계산 */
+function getKSTWeekBounds(): { weekStart: string; weekEnd: string } {
+  const today = getKSTToday();
+  const date = new Date(today);
+  const day = date.getDay(); // 0=일, 1=월 ... 6=토
+  const diff = day === 0 ? -6 : 1 - day;
+  const monday = new Date(date);
+  monday.setDate(date.getDate() + diff);
+  const weekStart = monday.toISOString().split('T')[0];
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const weekEnd = sunday.toISOString().split('T')[0];
+  return { weekStart, weekEnd };
+}
+
 export default function DailyMissionSection({
   meetingId,
   teamId,
   userId,
-  todaySubmission,
+  weekSubmissions,
   weeklyCount,
 }: DailyMissionSectionProps) {
   const [preview, setPreview] = useState<string | null>(null);
@@ -36,11 +56,32 @@ export default function DailyMissionSection({
   const [showInfo, setShowInfo] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const isWeekComplete = weeklyCount >= 5;
-  const canSubmitToday = !todaySubmission && !isWeekComplete;
+  const today = getKSTToday();
+  const { weekStart, weekEnd } = useMemo(() => getKSTWeekBounds(), []);
+
+  // 날짜 유효성 검사
+  const isDateOutOfWeek =
+    completedAt !== '' && (completedAt < weekStart || completedAt > weekEnd);
+  const isDateFuture = completedAt !== '' && completedAt > today;
+  const alreadySubmittedForDate =
+    completedAt !== '' &&
+    weekSubmissions.some(
+      (s) => s.submitted_date === completedAt && s.status !== 'rejected'
+    );
+
+  const dateError = isDateFuture
+    ? '미래 날짜로는 제출할 수 없습니다'
+    : isDateOutOfWeek
+    ? '이번 주(월~일) 날짜만 선택할 수 있습니다'
+    : alreadySubmittedForDate
+    ? '해당 날짜에 이미 제출한 미션이 있습니다'
+    : null;
 
   const noteLen = note.trim().length;
   const noteInvalid = noteLen > 0 && noteLen < 5;
+
+  const canSubmit =
+    !!file && completedAt !== '' && !dateError && !noteInvalid && !loading;
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
@@ -58,6 +99,10 @@ export default function DailyMissionSection({
       toast.error('수행 날짜를 입력해주세요');
       return;
     }
+    if (dateError) {
+      toast.error(dateError);
+      return;
+    }
     if (noteInvalid) {
       toast.error('메모는 5자 이상 입력하거나 비워두세요');
       return;
@@ -65,9 +110,7 @@ export default function DailyMissionSection({
 
     setLoading(true);
 
-    const dateStr = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date());
-
-    const uploadResult = await uploadDailyImage(file, meetingId, userId, dateStr);
+    const uploadResult = await uploadDailyImage(file, meetingId, userId, completedAt);
     if (!uploadResult.success || !uploadResult.url) {
       toast.error(uploadResult.error ?? '업로드 실패');
       setLoading(false);
@@ -114,7 +157,7 @@ export default function DailyMissionSection({
           <p>조원과 함께 활동을 하고 인증하기</p>
           <p className="text-muted-foreground">(예: 카페가기, 식사하기, 게임하기, 공부하기 등 함께라면 무엇이든!)</p>
           <ul className="space-y-1">
-            <li>■ 데일리 미션은 수행 당 1점이 부여됩니다</li>
+            <li>■ 데일리 미션은 수행 당 3점이 부여됩니다</li>
             <li>■ 4인 이상 참여 시 데일리 미션 포인트를 획득할 수 있습니다</li>
           </ul>
         </div>
@@ -150,58 +193,45 @@ export default function DailyMissionSection({
     </div>
   );
 
-  // 오늘 제출 완료 상태 표시
-  if (todaySubmission) {
-    const status = STATUS_MAP[todaySubmission.status];
-    return (
-      <div className="space-y-4">
-        {dailyInfoModal}
-        {progressBar}
-        <div className="flex items-center gap-3">
-          <span className={`px-3 py-1.5 text-xs font-bold uppercase border-2 border-border ${status.className}`}>
-            오늘 {status.label}
-          </span>
-          {todaySubmission.status === 'approved' && (
-            <span className="font-mono font-bold text-sm">+3pt</span>
-          )}
-        </div>
-        {todaySubmission.image_url && (
-          <div className="border-2 border-border p-2">
-            <ImageWithLightbox
-              src={todaySubmission.image_url}
-              alt="오늘 제출 이미지"
-              width={600}
-              height={400}
-              className="w-full max-h-48 object-contain"
-            />
-          </div>
-        )}
-        <p className="text-xs text-muted-foreground">하루 1회 · 주 최대 5회 · 3pt 고정 · 월~일 기준</p>
-      </div>
-    );
-  }
-
-  // 이번 주 완료
-  if (isWeekComplete) {
-    return (
-      <div className="space-y-4">
-        {dailyInfoModal}
-        {progressBar}
-        <div className="border-2 border-border p-4 bg-muted">
-          <p className="text-sm font-bold">이번 주 데일리 미션 완료! (5/5회)</p>
-        </div>
-        <p className="text-xs text-muted-foreground">하루 1회 · 주 최대 5회 · 3pt 고정 · 월~일 기준</p>
-      </div>
-    );
-  }
-
-  // 제출 폼
-  if (!canSubmitToday) return null;
+  // 이번 주 제출 내역 표시
+  const submittedDates = weekSubmissions.filter((s) => s.status !== 'rejected');
 
   return (
     <div className="space-y-4">
       {dailyInfoModal}
       {progressBar}
+
+      {/* 이번 주 제출 현황 */}
+      {submittedDates.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-bold text-muted-foreground uppercase">이번 주 제출 현황</p>
+          {submittedDates.map((s) => {
+            const status = STATUS_MAP[s.status];
+            return (
+              <div key={s.id} className="flex items-center gap-3">
+                <span className="font-mono text-sm">{s.submitted_date}</span>
+                <span className={`px-2 py-0.5 text-xs font-bold border-2 border-border ${status.className}`}>
+                  {status.label}
+                </span>
+                {s.status === 'approved' && (
+                  <span className="font-mono font-bold text-sm">+3pt</span>
+                )}
+                {s.image_url && (
+                  <div className="border border-border">
+                    <ImageWithLightbox
+                      src={s.image_url}
+                      alt={`${s.submitted_date} 제출 이미지`}
+                      width={200}
+                      height={120}
+                      className="w-16 h-10 object-cover"
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <input
         ref={inputRef}
@@ -234,13 +264,19 @@ export default function DailyMissionSection({
       <div className="space-y-1">
         <label className="text-sm font-bold">
           수행 날짜 <span className="text-destructive">*</span>
+          <span className="font-normal text-muted-foreground ml-1">(이번 주 월~일만 선택 가능)</span>
         </label>
         <input
           type="date"
           value={completedAt}
+          min={weekStart}
+          max={today}
           onChange={(e) => setCompletedAt(e.target.value)}
           className="input-brutal w-full"
         />
+        {dateError && (
+          <p className="text-xs text-destructive font-bold">{dateError}</p>
+        )}
       </div>
 
       {/* 메모 (선택) */}
@@ -264,10 +300,10 @@ export default function DailyMissionSection({
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={loading || !completedAt || noteInvalid}
+          disabled={!canSubmit}
           className="btn-brutal w-full disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {loading ? '제출 중...' : '오늘 제출하기'}
+          {loading ? '제출 중...' : '제출하기'}
         </button>
       )}
 

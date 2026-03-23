@@ -35,9 +35,37 @@ export function getWeekStart(todayStr: string, _meetingStartDate?: string | null
   return monday.toISOString().split('T')[0];
 }
 
+/** 주 시작일로부터 주 끝(일요일) 계산 */
+export function getWeekEnd(weekStart: string): string {
+  const monday = new Date(weekStart);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return sunday.toISOString().split('T')[0];
+}
+
 /** 오늘 날짜 (KST 기준) */
 export function getTodayStr(): string {
   return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date());
+}
+
+/** 이번 주 유저의 데일리 제출 목록 (모든 상태 포함) */
+export async function getUserWeekDailySubmissions(
+  meetingId: string,
+  userId: string,
+  weekStart: string
+): Promise<DailySubmission[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('daily_submissions')
+    .select('*')
+    .eq('meeting_id', meetingId)
+    .eq('submitted_by', userId)
+    .eq('week_start', weekStart)
+    .order('submitted_date', { ascending: true });
+
+  if (error || !data) return [];
+  return data;
 }
 
 /** 오늘 유저의 데일리 제출 여부 */

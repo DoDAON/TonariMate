@@ -123,24 +123,22 @@ export function DailyMissionStatus({
       {showInfo && <DailyInfoModal onClose={() => setShowInfo(false)} />}
       {progressBar}
 
-      {/* 오늘 제출 상태 */}
-      {todaySubmission ? (
-        <div className="flex items-center gap-3 flex-wrap">
-          <span
-            className={`px-3 py-1.5 text-xs font-bold uppercase border-2 border-border ${STATUS_MAP[todaySubmission.status].className}`}
-          >
-            오늘 {STATUS_MAP[todaySubmission.status].label}
-          </span>
-          {todaySubmission.status === 'approved' && (
-            <span className="font-mono font-bold text-sm">+1pt</span>
-          )}
-        </div>
-      ) : isWeekComplete ? (
+      {/* 오늘 제출 상태 + 제출 버튼 */}
+      {isWeekComplete ? (
         <p className="text-sm font-bold">이번 주 데일리 미션 완료!</p>
       ) : (
-        <Link href={ROUTES.MEETING_DAILY(meetingId)} className="btn-brutal inline-flex">
-          오늘 제출하기
-        </Link>
+        <div className="flex items-center gap-3 flex-wrap">
+          {todaySubmission && (
+            <span
+              className={`px-3 py-1.5 text-xs font-bold uppercase border-2 border-border ${STATUS_MAP[todaySubmission.status].className}`}
+            >
+              오늘 {STATUS_MAP[todaySubmission.status].label}
+            </span>
+          )}
+          <Link href={ROUTES.MEETING_DAILY(meetingId)} className="btn-brutal inline-flex">
+            이번 주 제출하기
+          </Link>
+        </div>
       )}
 
       <p className="text-xs text-muted-foreground">하루 1회 · 주 최대 5회 · 3pt 고정</p>
