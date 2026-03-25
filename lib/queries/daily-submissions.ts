@@ -88,19 +88,17 @@ export async function getUserTodayDailySubmission(
   return data;
 }
 
-/** 이번 주 유저의 데일리 제출 횟수 (rejected 제외) */
-export async function getUserWeeklyDailyCount(
-  meetingId: string,
-  userId: string,
+/** 이번 주 팀의 데일리 제출 횟수 (rejected 제외, 전체 팀원 합산) */
+export async function getTeamWeeklyDailyCount(
+  teamId: string,
   weekStart: string
 ): Promise<number> {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { count } = await supabase
     .from('daily_submissions')
     .select('*', { count: 'exact', head: true })
-    .eq('meeting_id', meetingId)
-    .eq('submitted_by', userId)
+    .eq('team_id', teamId)
     .eq('week_start', weekStart)
     .neq('status', 'rejected');
 

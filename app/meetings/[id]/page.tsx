@@ -8,7 +8,7 @@ import { getUserTeamInMeeting } from '@/lib/queries/teams';
 import { getMeetingMissions } from '@/lib/queries/missions';
 import {
   getUserTodayDailySubmission,
-  getUserWeeklyDailyCount,
+  getTeamWeeklyDailyCount,
   getWeekStart,
   getTodayStr,
 } from '@/lib/queries/daily-submissions';
@@ -55,7 +55,7 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
   const [todayDailySubmission, weeklyDailyCount] = team
     ? await Promise.all([
         getUserTodayDailySubmission(id, userId),
-        getUserWeeklyDailyCount(id, userId, weekStart),
+        getTeamWeeklyDailyCount(team.id, weekStart),
       ])
     : [null, 0];
 

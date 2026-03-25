@@ -5,7 +5,7 @@ import { ROUTES } from '@/lib/constants/routes';
 import { Header } from '@/components/layouts/Header';
 import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { getUserTeamInMeeting } from '@/lib/queries/teams';
-import { getUserWeekDailySubmissions, getUserWeeklyDailyCount, getTeamDailySubmissions, getWeekStart, getTodayStr } from '@/lib/queries/daily-submissions';
+import { getUserWeekDailySubmissions, getTeamWeeklyDailyCount, getTeamDailySubmissions, getWeekStart, getTodayStr } from '@/lib/queries/daily-submissions';
 import DailyMissionSection from '@/components/features/missions/DailyMissionSection';
 
 interface DailyPageProps {
@@ -50,7 +50,7 @@ export default async function DailyMissionPage({ params }: DailyPageProps) {
 
   const [weekSubmissions, weeklyCount, teamSubmissions] = await Promise.all([
     getUserWeekDailySubmissions(meetingId, user.id, weekStart),
-    getUserWeeklyDailyCount(meetingId, user.id, weekStart),
+    getTeamWeeklyDailyCount(team.id, weekStart),
     getTeamDailySubmissions(team.id, weekStart),
   ]);
 
