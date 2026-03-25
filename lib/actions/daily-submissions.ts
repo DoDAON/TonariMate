@@ -98,6 +98,48 @@ export async function submitDailyMission(
   return { success: true };
 }
 
+export async function updateDailyMission(
+  submissionId: string,
+  userId: string,
+  meetingId: string,
+  imageUrl: string,
+  note?: string
+): Promise<ActionResult> {
+  const supabase = await createClient();
+
+  const { data: submission, error: fetchError } = await supabase
+    .from('daily_submissions')
+    .select('id, submitted_by, status')
+    .eq('id', submissionId)
+    .single();
+
+  if (fetchError || !submission) {
+    return { success: false, error: '제출물을 찾을 수 없습니다' };
+  }
+
+  if (submission.submitted_by !== userId) {
+    return { success: false, error: '본인의 제출물만 수정할 수 있습니다' };
+  }
+
+  if (submission.status !== 'pending') {
+    return { success: false, error: '심사 중인 제출물만 수정할 수 있습니다' };
+  }
+
+  const { error } = await supabase
+    .from('daily_submissions')
+    .update({ image_url: imageUrl, note: note?.trim() || null })
+    .eq('id', submissionId);
+
+  if (error) {
+    return { success: false, error: '수정에 실패했습니다. 다시 시도해주세요.' };
+  }
+
+  revalidatePath(ROUTES.MEETING(meetingId));
+  revalidatePath(ROUTES.MEETING_DAILY(meetingId));
+
+  return { success: true };
+}
+
 export async function reviewDailySubmission(
   submissionId: string,
   meetingId: string,

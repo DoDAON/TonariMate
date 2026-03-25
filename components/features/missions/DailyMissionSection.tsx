@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo } from 'react';
 import { toast } from 'sonner';
 import { uploadDailyImage } from '@/lib/storage/upload';
-import { submitDailyMission } from '@/lib/actions/daily-submissions';
+import { submitDailyMission, updateDailyMission } from '@/lib/actions/daily-submissions';
 import type { DailySubmission, TeamDailySubmission } from '@/lib/queries/daily-submissions';
 import { ImageWithLightbox } from '@/components/features/missions/ImageWithLightbox';
 
@@ -57,6 +57,14 @@ export default function DailyMissionSection({
   const [loading, setLoading] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // 수정 모달 상태
+  const [editingSubmission, setEditingSubmission] = useState<DailySubmission | null>(null);
+  const [editFile, setEditFile] = useState<File | null>(null);
+  const [editPreview, setEditPreview] = useState<string | null>(null);
+  const [editNote, setEditNote] = useState('');
+  const [editLoading, setEditLoading] = useState(false);
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   const today = getKSTToday();
   const { weekStart, weekEnd } = useMemo(() => getKSTWeekBounds(), []);
@@ -136,6 +144,172 @@ export default function DailyMissionSection({
     // 성공 시 서버 revalidate로 페이지 갱신됨
   }
 
+  function handleOpenEdit(submission: DailySubmission) {
+    setEditingSubmission(submission);
+    setEditFile(null);
+    setEditPreview(null);
+    setEditNote(submission.note ?? '');
+  }
+
+  function handleCloseEdit() {
+    setEditingSubmission(null);
+    setEditFile(null);
+    setEditPreview(null);
+    setEditNote('');
+  }
+
+  function handleEditFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    setEditFile(selected);
+    setEditPreview(URL.createObjectURL(selected));
+  }
+
+  async function handleEditSubmit() {
+    if (!editingSubmission) return;
+
+    const editNoteLen = editNote.trim().length;
+    if (editNoteLen > 0 && editNoteLen < 5) {
+      toast.error('메모는 5자 이상 입력하거나 비워두세요');
+      return;
+    }
+
+    setEditLoading(true);
+
+    let imageUrl = editingSubmission.image_url;
+
+    if (editFile) {
+      const uploadResult = await uploadDailyImage(
+        editFile,
+        meetingId,
+        userId,
+        editingSubmission.submitted_date
+      );
+      if (!uploadResult.success || !uploadResult.url) {
+        toast.error(uploadResult.error ?? '업로드 실패');
+        setEditLoading(false);
+        return;
+      }
+      imageUrl = uploadResult.url;
+    }
+
+    const result = await updateDailyMission(
+      editingSubmission.id,
+      userId,
+      meetingId,
+      imageUrl,
+      editNote || undefined
+    );
+
+    setEditLoading(false);
+
+    if (!result.success) {
+      toast.error(result.error ?? '수정 실패');
+    } else {
+      handleCloseEdit();
+    }
+  }
+
+  const editNoteLen = editNote.trim().length;
+  const editNoteInvalid = editNoteLen > 0 && editNoteLen < 5;
+  const canEditSubmit = !editNoteInvalid && !editLoading;
+
+  const editModal = editingSubmission && (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={handleCloseEdit}
+    >
+      <div
+        className="card-brutal bg-background max-w-sm w-full mx-4 space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="font-black uppercase">제출 수정</h3>
+          <button
+            type="button"
+            onClick={handleCloseEdit}
+            className="text-muted-foreground hover:text-foreground font-bold"
+          >
+            ✕
+          </button>
+        </div>
+
+        <p className="text-sm font-mono text-muted-foreground">{editingSubmission.submitted_date}</p>
+
+        {/* 현재 이미지 */}
+        <div>
+          <p className="text-xs font-bold uppercase text-muted-foreground mb-2">현재 이미지</p>
+          <div className="border-2 border-border p-2">
+            {editPreview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={editPreview} alt="새 이미지 미리보기" className="w-full max-h-48 object-contain" />
+            ) : (
+              <ImageWithLightbox
+                src={editingSubmission.image_url}
+                alt="현재 제출 이미지"
+                width={400}
+                height={300}
+                className="w-full max-h-48 object-contain"
+              />
+            )}
+          </div>
+        </div>
+
+        <input
+          ref={editInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handleEditFileChange}
+          className="hidden"
+        />
+
+        <button
+          type="button"
+          onClick={() => editInputRef.current?.click()}
+          disabled={editLoading}
+          className="btn-brutal bg-muted text-foreground w-full"
+        >
+          {editFile ? '다른 이미지로 변경' : '이미지 변경'}
+        </button>
+
+        {/* 메모 */}
+        <div className="space-y-1">
+          <label className="text-sm font-bold">
+            메모 <span className="text-muted-foreground font-normal">(선택 · 입력 시 5자 이상)</span>
+          </label>
+          <textarea
+            value={editNote}
+            onChange={(e) => setEditNote(e.target.value)}
+            placeholder="메모를 남겨주세요"
+            rows={2}
+            className="input-brutal w-full resize-none"
+          />
+          {editNoteInvalid && (
+            <p className="text-xs text-destructive font-bold">5자 이상 입력하거나 비워두세요 ({editNoteLen}자)</p>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleCloseEdit}
+            className="btn-brutal bg-muted text-foreground flex-1"
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            onClick={handleEditSubmit}
+            disabled={!canEditSubmit}
+            className="btn-brutal flex-1 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {editLoading ? '저장 중...' : '저장'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   const dailyInfoModal = showInfo && (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
@@ -202,6 +376,7 @@ export default function DailyMissionSection({
 
   return (
     <div className="space-y-4">
+      {editModal}
       {dailyInfoModal}
       {progressBar}
 
@@ -232,6 +407,15 @@ export default function DailyMissionSection({
                           className="w-16 h-10 object-cover"
                         />
                       </div>
+                    )}
+                    {s.status === 'pending' && (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEdit(s)}
+                        className="px-2 py-0.5 text-xs font-bold border-2 border-foreground hover:bg-foreground hover:text-background transition-colors"
+                      >
+                        수정
+                      </button>
                     )}
                   </div>
                 );
