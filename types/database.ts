@@ -394,6 +394,7 @@ export interface Database {
           status: 'pending' | 'approved' | 'rejected';
           reviewed_by: string | null;
           reviewed_at: string | null;
+          rejection_reason: string | null;
           points_awarded: number;
           created_at: string;
         };
@@ -410,6 +411,7 @@ export interface Database {
           status?: 'pending' | 'approved' | 'rejected';
           reviewed_by?: string | null;
           reviewed_at?: string | null;
+          rejection_reason?: string | null;
           points_awarded?: number;
           created_at?: string;
         };
@@ -426,6 +428,7 @@ export interface Database {
           status?: 'pending' | 'approved' | 'rejected';
           reviewed_by?: string | null;
           reviewed_at?: string | null;
+          rejection_reason?: string | null;
           points_awarded?: number;
           created_at?: string;
         };

@@ -13,6 +13,7 @@ export interface DailySubmission {
   status: 'pending' | 'approved' | 'rejected';
   reviewed_by: string | null;
   reviewed_at: string | null;
+  rejection_reason: string | null;
   points_awarded: number;
   created_at: string;
 }
@@ -139,6 +140,7 @@ export async function getMeetingDailySubmissions(
     status: row.status,
     reviewed_by: row.reviewed_by,
     reviewed_at: row.reviewed_at,
+    rejection_reason: row.rejection_reason,
     points_awarded: row.points_awarded,
     created_at: row.created_at,
     submitter_name: (row.users as unknown as { name: string } | null)?.name ?? null,
@@ -185,6 +187,7 @@ export async function getTeamDailySubmissions(
     status: row.status,
     reviewed_by: row.reviewed_by,
     reviewed_at: row.reviewed_at,
+    rejection_reason: row.rejection_reason,
     points_awarded: row.points_awarded,
     created_at: row.created_at,
     submitter_name: (row.users as unknown as { name: string } | null)?.name ?? null,

@@ -29,13 +29,20 @@ function SubmissionCard({
   reviewerId: string;
 }) {
   const [loading, setLoading] = useState(false);
+  const [showRejectForm, setShowRejectForm] = useState(false);
+  const [rejectReason, setRejectReason] = useState('미션 사진이 명확하지 않음');
+  const [rejectCustom, setRejectCustom] = useState('');
 
   async function handleReview(action: 'approve' | 'reject') {
-    if (action === 'reject' && !confirm('이 제출물을 거절하시겠습니까?')) return;
     setLoading(true);
-    const result = await reviewDailySubmission(sub.id, meetingId, reviewerId, action);
+    let reason: string | undefined;
+    if (action === 'reject') {
+      reason = rejectReason === '기타' ? rejectCustom.trim() || '기타' : rejectReason;
+    }
+    const result = await reviewDailySubmission(sub.id, meetingId, reviewerId, action, reason);
     setLoading(false);
     if (!result.success) toast.error(result.error ?? '처리에 실패했습니다');
+    else setShowRejectForm(false);
   }
 
   async function handleDelete() {
@@ -113,23 +120,62 @@ function SubmissionCard({
 
       {/* 심사 버튼 */}
       {sub.status === 'pending' && (
-        <div className="flex gap-2 pt-1 border-t-2 border-border">
-          <button
-            type="button"
-            onClick={() => handleReview('approve')}
-            disabled={loading}
-            className="btn-brutal text-sm flex-1"
-          >
-            {loading ? '...' : '승인 (+3pt)'}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleReview('reject')}
-            disabled={loading}
-            className="btn-brutal bg-destructive text-destructive-foreground text-sm flex-1"
-          >
-            {loading ? '...' : '거절'}
-          </button>
+        <div className="pt-1 border-t-2 border-border space-y-2">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => handleReview('approve')}
+              disabled={loading}
+              className="btn-brutal text-sm flex-1"
+            >
+              {loading ? '...' : '승인 (+3pt)'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowRejectForm((v) => !v)}
+              disabled={loading}
+              className="btn-brutal bg-destructive text-destructive-foreground text-sm flex-1"
+            >
+              거절
+            </button>
+          </div>
+          {showRejectForm && (
+            <div className="space-y-2 border-t-2 border-border pt-2">
+              <label className="text-xs font-bold">반려 사유</label>
+              <div className="flex flex-col gap-2">
+                {['미션 사진이 명확하지 않음', '인원 부족', '기타'].map((opt) => (
+                  <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="radio"
+                      name={`reject-reason-${sub.id}`}
+                      value={opt}
+                      checked={rejectReason === opt}
+                      onChange={() => setRejectReason(opt)}
+                    />
+                    {opt}
+                  </label>
+                ))}
+              </div>
+              {rejectReason === '기타' && (
+                <input
+                  type="text"
+                  value={rejectCustom}
+                  onChange={(e) => setRejectCustom(e.target.value.slice(0, 20))}
+                  placeholder="사유 입력 (최대 20자)"
+                  maxLength={20}
+                  className="input-brutal w-full text-sm"
+                />
+              )}
+              <button
+                type="button"
+                onClick={() => handleReview('reject')}
+                disabled={loading || (rejectReason === '기타' && !rejectCustom.trim())}
+                className="btn-brutal bg-destructive text-destructive-foreground text-sm w-full disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {loading ? '...' : '반려 확정'}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

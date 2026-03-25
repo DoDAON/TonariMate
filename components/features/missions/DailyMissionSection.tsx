@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo } from 'react';
 import { toast } from 'sonner';
 import { uploadDailyImage } from '@/lib/storage/upload';
-import { submitDailyMission, updateDailyMission } from '@/lib/actions/daily-submissions';
+import { submitDailyMission, updateDailyMission, resubmitDailyMission } from '@/lib/actions/daily-submissions';
 import type { DailySubmission, TeamDailySubmission } from '@/lib/queries/daily-submissions';
 import { ImageWithLightbox } from '@/components/features/missions/ImageWithLightbox';
 
@@ -65,6 +65,14 @@ export default function DailyMissionSection({
   const [editNote, setEditNote] = useState('');
   const [editLoading, setEditLoading] = useState(false);
   const editInputRef = useRef<HTMLInputElement>(null);
+
+  // 재제출 모달 상태
+  const [resubmittingSubmission, setResubmittingSubmission] = useState<DailySubmission | null>(null);
+  const [resubmitFile, setResubmitFile] = useState<File | null>(null);
+  const [resubmitPreview, setResubmitPreview] = useState<string | null>(null);
+  const [resubmitNote, setResubmitNote] = useState('');
+  const [resubmitLoading, setResubmitLoading] = useState(false);
+  const resubmitInputRef = useRef<HTMLInputElement>(null);
 
   const today = getKSTToday();
   const { weekStart, weekEnd } = useMemo(() => getKSTWeekBounds(), []);
@@ -214,6 +222,73 @@ export default function DailyMissionSection({
   const editNoteInvalid = editNoteLen > 0 && editNoteLen < 5;
   const canEditSubmit = !editNoteInvalid && !editLoading;
 
+  function handleOpenResubmit(submission: DailySubmission) {
+    setResubmittingSubmission(submission);
+    setResubmitFile(null);
+    setResubmitPreview(null);
+    setResubmitNote(submission.note ?? '');
+  }
+
+  function handleCloseResubmit() {
+    setResubmittingSubmission(null);
+    setResubmitFile(null);
+    setResubmitPreview(null);
+    setResubmitNote('');
+  }
+
+  function handleResubmitFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    setResubmitFile(selected);
+    setResubmitPreview(URL.createObjectURL(selected));
+  }
+
+  async function handleResubmitSubmit() {
+    if (!resubmittingSubmission) return;
+    if (!resubmitFile) {
+      toast.error('새 이미지를 선택해주세요');
+      return;
+    }
+    const resubmitNoteLen = resubmitNote.trim().length;
+    if (resubmitNoteLen > 0 && resubmitNoteLen < 5) {
+      toast.error('메모는 5자 이상 입력하거나 비워두세요');
+      return;
+    }
+
+    setResubmitLoading(true);
+
+    const uploadResult = await uploadDailyImage(
+      resubmitFile,
+      meetingId,
+      userId,
+      resubmittingSubmission.submitted_date
+    );
+    if (!uploadResult.success || !uploadResult.url) {
+      toast.error(uploadResult.error ?? '업로드 실패');
+      setResubmitLoading(false);
+      return;
+    }
+
+    const result = await resubmitDailyMission(
+      resubmittingSubmission.id,
+      userId,
+      meetingId,
+      uploadResult.url,
+      resubmitNote || undefined
+    );
+
+    setResubmitLoading(false);
+
+    if (!result.success) {
+      toast.error(result.error ?? '재제출 실패');
+    } else {
+      handleCloseResubmit();
+    }
+  }
+
+  const resubmitNoteLen = resubmitNote.trim().length;
+  const resubmitNoteInvalid = resubmitNoteLen > 0 && resubmitNoteLen < 5;
+
   const editModal = editingSubmission && (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
@@ -310,6 +385,105 @@ export default function DailyMissionSection({
     </div>
   );
 
+  const resubmitModal = resubmittingSubmission && (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={handleCloseResubmit}
+    >
+      <div
+        className="card-brutal bg-background max-w-sm w-full mx-4 space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="font-black uppercase">재제출</h3>
+          <button
+            type="button"
+            onClick={handleCloseResubmit}
+            className="text-muted-foreground hover:text-foreground font-bold"
+          >
+            ✕
+          </button>
+        </div>
+
+        <p className="text-sm font-mono text-muted-foreground">{resubmittingSubmission.submitted_date}</p>
+
+        {resubmittingSubmission.rejection_reason && (
+          <div className="border-l-4 border-destructive pl-3 space-y-0.5">
+            <p className="text-xs font-bold text-destructive uppercase">반려 사유</p>
+            <p className="text-sm">{resubmittingSubmission.rejection_reason}</p>
+          </div>
+        )}
+
+        <div>
+          <p className="text-xs font-bold uppercase text-muted-foreground mb-2">
+            {resubmitPreview ? '새 이미지 미리보기' : '새 이미지 선택 필요'}
+          </p>
+          {resubmitPreview ? (
+            <div className="border-2 border-border p-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={resubmitPreview} alt="재제출 이미지 미리보기" className="w-full max-h-48 object-contain" />
+            </div>
+          ) : (
+            <div className="border-2 border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+              이미지를 선택해주세요
+            </div>
+          )}
+        </div>
+
+        <input
+          ref={resubmitInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handleResubmitFileChange}
+          className="hidden"
+        />
+
+        <button
+          type="button"
+          onClick={() => resubmitInputRef.current?.click()}
+          disabled={resubmitLoading}
+          className="btn-brutal bg-muted text-foreground w-full"
+        >
+          {resubmitFile ? '다른 이미지 선택' : '이미지 선택'}
+        </button>
+
+        <div className="space-y-1">
+          <label className="text-sm font-bold">
+            메모 <span className="text-muted-foreground font-normal">(선택 · 입력 시 5자 이상)</span>
+          </label>
+          <textarea
+            value={resubmitNote}
+            onChange={(e) => setResubmitNote(e.target.value)}
+            placeholder="메모를 남겨주세요"
+            rows={2}
+            className="input-brutal w-full resize-none"
+          />
+          {resubmitNoteInvalid && (
+            <p className="text-xs text-destructive font-bold">5자 이상 입력하거나 비워두세요 ({resubmitNoteLen}자)</p>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleCloseResubmit}
+            className="btn-brutal bg-muted text-foreground flex-1"
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            onClick={handleResubmitSubmit}
+            disabled={!resubmitFile || resubmitNoteInvalid || resubmitLoading}
+            className="btn-brutal flex-1 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {resubmitLoading ? '제출 중...' : '재제출하기'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   const dailyInfoModal = showInfo && (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
@@ -369,14 +543,15 @@ export default function DailyMissionSection({
     </div>
   );
 
-  // 이번 주 제출 내역 표시
-  const submittedDates = weekSubmissions.filter((s) => s.status !== 'rejected');
+  // 이번 주 제출 내역 표시 (거절 포함 전체)
+  const submittedDates = weekSubmissions;
   // 팀원 제출 내역 (본인 제외)
   const teammateSubmissions = teamSubmissions.filter((s) => s.submitted_by !== userId);
 
   return (
     <div className="space-y-4">
       {editModal}
+      {resubmitModal}
       {dailyInfoModal}
       {progressBar}
 
@@ -389,33 +564,47 @@ export default function DailyMissionSection({
               {submittedDates.map((s) => {
                 const status = STATUS_MAP[s.status];
                 return (
-                  <div key={s.id} className="flex items-center gap-3">
-                    <span className="font-mono text-sm">{s.submitted_date}</span>
-                    <span className={`px-2 py-0.5 text-xs font-bold border-2 border-border ${status.className}`}>
-                      {status.label}
-                    </span>
-                    {s.status === 'approved' && (
-                      <span className="font-mono font-bold text-sm">+3pt</span>
-                    )}
-                    {s.image_url && (
-                      <div className="border border-border">
-                        <ImageWithLightbox
-                          src={s.image_url}
-                          alt={`${s.submitted_date} 제출 이미지`}
-                          width={200}
-                          height={120}
-                          className="w-16 h-10 object-cover"
-                        />
-                      </div>
-                    )}
-                    {s.status === 'pending' && (
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEdit(s)}
-                        className="px-2 py-0.5 text-xs font-bold border-2 border-foreground hover:bg-foreground hover:text-background transition-colors"
-                      >
-                        수정
-                      </button>
+                  <div key={s.id} className="space-y-1">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-sm">{s.submitted_date}</span>
+                      <span className={`px-2 py-0.5 text-xs font-bold border-2 border-border ${status.className}`}>
+                        {status.label}
+                      </span>
+                      {s.status === 'approved' && (
+                        <span className="font-mono font-bold text-sm">+3pt</span>
+                      )}
+                      {s.image_url && (
+                        <div className="border border-border">
+                          <ImageWithLightbox
+                            src={s.image_url}
+                            alt={`${s.submitted_date} 제출 이미지`}
+                            width={200}
+                            height={120}
+                            className="w-16 h-10 object-cover"
+                          />
+                        </div>
+                      )}
+                      {s.status === 'pending' && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(s)}
+                          className="px-2 py-0.5 text-xs font-bold border-2 border-foreground hover:bg-foreground hover:text-background transition-colors"
+                        >
+                          수정
+                        </button>
+                      )}
+                      {s.status === 'rejected' && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenResubmit(s)}
+                          className="px-2 py-0.5 text-xs font-bold border-2 border-foreground hover:bg-foreground hover:text-background transition-colors"
+                        >
+                          재제출
+                        </button>
+                      )}
+                    </div>
+                    {s.status === 'rejected' && s.rejection_reason && (
+                      <p className="text-xs text-destructive pl-1">반려 사유: {s.rejection_reason}</p>
                     )}
                   </div>
                 );
