@@ -5,7 +5,7 @@ import { ROUTES } from '@/lib/constants/routes';
 import { Header } from '@/components/layouts/Header';
 import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { getUserTeamInMeeting } from '@/lib/queries/teams';
-import { getUserWeekDailySubmissions, getUserWeeklyDailyCount, getWeekStart, getTodayStr } from '@/lib/queries/daily-submissions';
+import { getUserWeekDailySubmissions, getUserWeeklyDailyCount, getTeamDailySubmissions, getWeekStart, getTodayStr } from '@/lib/queries/daily-submissions';
 import DailyMissionSection from '@/components/features/missions/DailyMissionSection';
 
 interface DailyPageProps {
@@ -48,15 +48,11 @@ export default async function DailyMissionPage({ params }: DailyPageProps) {
 
   const weekStart = getWeekStart(today, meeting.start_date);
 
-  const [weekSubmissions, weeklyCount] = await Promise.all([
+  const [weekSubmissions, weeklyCount, teamSubmissions] = await Promise.all([
     getUserWeekDailySubmissions(meetingId, user.id, weekStart),
     getUserWeeklyDailyCount(meetingId, user.id, weekStart),
+    getTeamDailySubmissions(team.id, weekStart),
   ]);
-
-  // 주 5회 완료 시 모임 페이지로 리다이렉트
-  if (weeklyCount >= 5) {
-    redirect(ROUTES.MEETING(meetingId));
-  }
 
   return (
     <div className="min-h-screen noise-overlay">
@@ -96,6 +92,7 @@ export default async function DailyMissionPage({ params }: DailyPageProps) {
             userId={user.id}
             weekSubmissions={weekSubmissions}
             weeklyCount={weeklyCount}
+            teamSubmissions={teamSubmissions}
           />
         </section>
       </main>

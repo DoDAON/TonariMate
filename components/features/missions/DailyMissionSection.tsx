@@ -4,7 +4,7 @@ import { useState, useRef, useMemo } from 'react';
 import { toast } from 'sonner';
 import { uploadDailyImage } from '@/lib/storage/upload';
 import { submitDailyMission } from '@/lib/actions/daily-submissions';
-import type { DailySubmission } from '@/lib/queries/daily-submissions';
+import type { DailySubmission, TeamDailySubmission } from '@/lib/queries/daily-submissions';
 import { ImageWithLightbox } from '@/components/features/missions/ImageWithLightbox';
 
 interface DailyMissionSectionProps {
@@ -13,6 +13,7 @@ interface DailyMissionSectionProps {
   userId: string;
   weekSubmissions: DailySubmission[];
   weeklyCount: number; // rejected 제외 이번 주 제출 횟수
+  teamSubmissions?: TeamDailySubmission[];
 }
 
 const STATUS_MAP = {
@@ -47,6 +48,7 @@ export default function DailyMissionSection({
   userId,
   weekSubmissions,
   weeklyCount,
+  teamSubmissions = [],
 }: DailyMissionSectionProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -195,6 +197,8 @@ export default function DailyMissionSection({
 
   // 이번 주 제출 내역 표시
   const submittedDates = weekSubmissions.filter((s) => s.status !== 'rejected');
+  // 팀원 제출 내역 (본인 제외)
+  const teammateSubmissions = teamSubmissions.filter((s) => s.submitted_by !== userId);
 
   return (
     <div className="space-y-4">
@@ -202,7 +206,7 @@ export default function DailyMissionSection({
       {progressBar}
 
       {/* 이번 주 제출 현황 */}
-      {submittedDates.length > 0 && (
+      {(submittedDates.length > 0 || teammateSubmissions.length > 0) && (
         <div className="space-y-2">
           <p className="text-xs font-bold text-muted-foreground uppercase">이번 주 제출 현황</p>
           {submittedDates.map((s) => {
@@ -221,6 +225,32 @@ export default function DailyMissionSection({
                     <ImageWithLightbox
                       src={s.image_url}
                       alt={`${s.submitted_date} 제출 이미지`}
+                      width={200}
+                      height={120}
+                      className="w-16 h-10 object-cover"
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {teammateSubmissions.map((s) => {
+            const status = STATUS_MAP[s.status];
+            return (
+              <div key={s.id} className="flex items-center gap-3">
+                <span className="font-mono text-sm">{s.submitted_date}</span>
+                <span className="text-sm font-bold truncate max-w-[80px]">{s.submitter_name ?? '-'}</span>
+                <span className={`px-2 py-0.5 text-xs font-bold border-2 border-border ${status.className}`}>
+                  {status.label}
+                </span>
+                {s.status === 'approved' && (
+                  <span className="font-mono font-bold text-sm">+3pt</span>
+                )}
+                {s.image_url && (
+                  <div className="border border-border">
+                    <ImageWithLightbox
+                      src={s.image_url}
+                      alt={`${s.submitted_date} ${s.submitter_name} 제출 이미지`}
                       width={200}
                       height={120}
                       className="w-16 h-10 object-cover"
