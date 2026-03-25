@@ -172,3 +172,77 @@ export async function reviewDailySubmission(
 
   return { success: true };
 }
+
+/**
+ * 데일리 제출물 삭제 (롤백).
+ * 승인된 경우 포인트 레코드도 1개 회수하고 total_points 재계산.
+ */
+export async function deleteDailySubmission(
+  submissionId: string,
+  meetingId: string
+): Promise<ActionResult> {
+  const supabase = await createClient();
+
+  const { data: submission, error: fetchError } = await supabase
+    .from('daily_submissions')
+    .select('id, team_id, status, image_url')
+    .eq('id', submissionId)
+    .single();
+
+  if (fetchError || !submission) {
+    return { success: false, error: '제출물을 찾을 수 없습니다' };
+  }
+
+  // 승인된 경우 포인트 1건 회수
+  if (submission.status === 'approved') {
+    const { data: pointRecord } = await supabase
+      .from('points')
+      .select('id')
+      .eq('team_id', submission.team_id)
+      .is('mission_id', null)
+      .eq('amount', 3)
+      .eq('reason', '데일리 미션 완료')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (pointRecord) {
+      await supabase.from('points').delete().eq('id', pointRecord.id);
+    }
+
+    // total_points 재계산
+    const { data: pts } = await supabase
+      .from('points')
+      .select('amount')
+      .eq('team_id', submission.team_id);
+    const total = pts?.reduce((sum, p) => sum + p.amount, 0) ?? 0;
+    await supabase.from('teams').update({ total_points: total }).eq('id', submission.team_id);
+  }
+
+  // 스토리지 이미지 삭제 (best-effort)
+  if (submission.image_url) {
+    try {
+      const marker = '/mission-images/';
+      const idx = submission.image_url.indexOf(marker);
+      if (idx !== -1) {
+        const path = submission.image_url.slice(idx + marker.length);
+        await supabase.storage.from('mission-images').remove([path]);
+      }
+    } catch {
+      // 스토리지 삭제 실패해도 DB 삭제 계속 진행
+    }
+  }
+
+  const { error } = await supabase
+    .from('daily_submissions')
+    .delete()
+    .eq('id', submissionId);
+
+  if (error) {
+    return { success: false, error: '제출물 삭제에 실패했습니다' };
+  }
+
+  revalidatePath(ROUTES.ADMIN_MEETING_DAILY(meetingId));
+
+  return { success: true };
+}

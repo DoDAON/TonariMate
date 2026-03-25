@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { reviewDailySubmission } from '@/lib/actions/daily-submissions';
+import { reviewDailySubmission, deleteDailySubmission } from '@/lib/actions/daily-submissions';
 import { formatTeamName } from '@/lib/utils';
 import { ImageWithLightbox } from '@/components/features/missions/ImageWithLightbox';
 import type { DailySubmissionWithUser } from '@/lib/queries/daily-submissions';
@@ -38,6 +38,17 @@ function SubmissionCard({
     if (!result.success) toast.error(result.error ?? '처리에 실패했습니다');
   }
 
+  async function handleDelete() {
+    const confirmed = confirm(
+      `이 제출물을 삭제하시겠습니까?${sub.status === 'approved' ? '\n승인된 포인트(3pt)도 회수됩니다.' : ''}`
+    );
+    if (!confirmed) return;
+    setLoading(true);
+    const result = await deleteDailySubmission(sub.id, meetingId);
+    setLoading(false);
+    if (!result.success) toast.error(result.error ?? '삭제에 실패했습니다');
+  }
+
   const teamLabel =
     sub.team_number !== null && sub.team_name !== null
       ? formatTeamName(sub.team_number, sub.team_name)
@@ -65,7 +76,17 @@ function SubmissionCard({
             <span className="text-xs font-mono font-bold">+3pt</span>
           )}
         </div>
-        <span className="font-mono text-xs text-muted-foreground whitespace-nowrap">{sub.submitted_date}</span>
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-xs text-muted-foreground whitespace-nowrap">{sub.submitted_date}</span>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={loading}
+            className="text-xs text-destructive font-bold hover:underline"
+          >
+            삭제
+          </button>
+        </div>
       </div>
 
       {/* 이미지 */}
