@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/client';
+import { compressImage } from '@/lib/storage/compress';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE = 20 * 1024 * 1024; // 20MB (압축 전 원본 허용 크기)
 
 export async function uploadAvatarImage(
   file: File,
@@ -12,17 +13,17 @@ export async function uploadAvatarImage(
   }
 
   if (file.size > MAX_SIZE) {
-    return { success: false, error: '파일 크기는 5MB 이하여야 합니다' };
+    return { success: false, error: '파일 크기는 20MB 이하여야 합니다' };
   }
 
-  const ext = file.name.split('.').pop() ?? 'jpg';
-  const path = `${userId}/avatar.${ext}`;
+  const compressed = await compressImage(file);
+  const path = `${userId}/avatar.jpg`;
 
   const supabase = createClient();
 
   const { error } = await supabase.storage
     .from('avatars')
-    .upload(path, file, { upsert: true });
+    .upload(path, compressed, { upsert: true, contentType: 'image/jpeg' });
 
   if (error) {
     console.error('[Avatar upload error]', error.message, error);
@@ -53,18 +54,18 @@ export async function uploadMissionImage(
   }
 
   if (file.size > MAX_SIZE) {
-    return { success: false, error: '파일 크기는 5MB 이하여야 합니다' };
+    return { success: false, error: '파일 크기는 20MB 이하여야 합니다' };
   }
 
-  const ext = file.name.split('.').pop() ?? 'jpg';
+  const compressed = await compressImage(file);
   // teamId를 별도 폴더로 분리해야 Storage RLS의 foldername()[3]이 teamId를 올바르게 파싱함
-  const path = `${meetingId}/${missionId}/${teamId}/image.${ext}`;
+  const path = `${meetingId}/${missionId}/${teamId}/image.jpg`;
 
   const supabase = createClient();
 
   const { error } = await supabase.storage
     .from('mission-images')
-    .upload(path, file, { upsert: true });
+    .upload(path, compressed, { upsert: true, contentType: 'image/jpeg' });
 
   if (error) {
     console.error('[Storage upload error]', error.message, error);
@@ -89,17 +90,17 @@ export async function uploadDailyImage(
   }
 
   if (file.size > MAX_SIZE) {
-    return { success: false, error: '파일 크기는 5MB 이하여야 합니다' };
+    return { success: false, error: '파일 크기는 20MB 이하여야 합니다' };
   }
 
-  const ext = file.name.split('.').pop() ?? 'jpg';
-  const path = `daily/${meetingId}/${userId}/${date}/image.${ext}`;
+  const compressed = await compressImage(file);
+  const path = `daily/${meetingId}/${userId}/${date}/image.jpg`;
 
   const supabase = createClient();
 
   const { error } = await supabase.storage
     .from('mission-images')
-    .upload(path, file, { upsert: true });
+    .upload(path, compressed, { upsert: true, contentType: 'image/jpeg' });
 
   if (error) {
     console.error('[Daily upload error]', error.message, error);
