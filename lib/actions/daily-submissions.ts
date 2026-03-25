@@ -268,7 +268,8 @@ export async function deleteDailySubmission(
       const marker = '/mission-images/';
       const idx = submission.image_url.indexOf(marker);
       if (idx !== -1) {
-        const path = submission.image_url.slice(idx + marker.length);
+        const rawPath = submission.image_url.slice(idx + marker.length);
+        const path = rawPath.split('?')[0]; // 버전 쿼리 파라미터 제거
         await supabase.storage.from('mission-images').remove([path]);
       }
     } catch {

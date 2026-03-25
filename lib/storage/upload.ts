@@ -111,5 +111,6 @@ export async function uploadDailyImage(
     .from('mission-images')
     .getPublicUrl(path);
 
-  return { success: true, url: urlData.publicUrl };
+  // 같은 경로로 upsert 시 Next.js Image 캐시가 갱신되도록 버전 파라미터 추가
+  return { success: true, url: `${urlData.publicUrl}?v=${Date.now()}` };
 }
