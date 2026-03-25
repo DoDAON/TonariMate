@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 
 export interface DailySubmission {
   id: string;
@@ -158,7 +158,7 @@ export async function getTeamDailySubmissions(
   teamId: string,
   weekStart?: string
 ): Promise<TeamDailySubmission[]> {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   let query = supabase
     .from('daily_submissions')
