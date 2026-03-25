@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { ROUTES } from '@/lib/constants/routes';
 import { getTodayStr, getWeekStart, getWeekEnd } from '@/lib/queries/daily-submissions';
 
@@ -93,6 +93,7 @@ export async function submitDailyMission(
   }
 
   revalidatePath(ROUTES.MEETING(meetingId));
+  revalidatePath(ROUTES.MEETING_DAILY(meetingId));
 
   return { success: true };
 }
@@ -181,7 +182,7 @@ export async function deleteDailySubmission(
   submissionId: string,
   meetingId: string
 ): Promise<ActionResult> {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: submission, error: fetchError } = await supabase
     .from('daily_submissions')
@@ -243,6 +244,8 @@ export async function deleteDailySubmission(
   }
 
   revalidatePath(ROUTES.ADMIN_MEETING_DAILY(meetingId));
+  revalidatePath(ROUTES.MEETING_DAILY(meetingId));
+  revalidatePath(ROUTES.MEETING(meetingId));
 
   return { success: true };
 }

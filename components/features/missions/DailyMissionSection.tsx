@@ -208,32 +208,39 @@ export default function DailyMissionSection({
       {/* 이번 주 제출 현황 */}
       {(submittedDates.length > 0 || teammateSubmissions.length > 0) && (
         <div className="space-y-2">
-          <p className="text-xs font-bold text-muted-foreground uppercase">이번 주 제출 현황</p>
-          {submittedDates.map((s) => {
-            const status = STATUS_MAP[s.status];
-            return (
-              <div key={s.id} className="flex items-center gap-3">
-                <span className="font-mono text-sm">{s.submitted_date}</span>
-                <span className={`px-2 py-0.5 text-xs font-bold border-2 border-border ${status.className}`}>
-                  {status.label}
-                </span>
-                {s.status === 'approved' && (
-                  <span className="font-mono font-bold text-sm">+3pt</span>
-                )}
-                {s.image_url && (
-                  <div className="border border-border">
-                    <ImageWithLightbox
-                      src={s.image_url}
-                      alt={`${s.submitted_date} 제출 이미지`}
-                      width={200}
-                      height={120}
-                      className="w-16 h-10 object-cover"
-                    />
+          {submittedDates.length > 0 && (
+            <>
+              <p className="text-xs font-bold text-muted-foreground uppercase">내 제출 현황 ({submittedDates.length}/5)</p>
+              {submittedDates.map((s) => {
+                const status = STATUS_MAP[s.status];
+                return (
+                  <div key={s.id} className="flex items-center gap-3">
+                    <span className="font-mono text-sm">{s.submitted_date}</span>
+                    <span className={`px-2 py-0.5 text-xs font-bold border-2 border-border ${status.className}`}>
+                      {status.label}
+                    </span>
+                    {s.status === 'approved' && (
+                      <span className="font-mono font-bold text-sm">+3pt</span>
+                    )}
+                    {s.image_url && (
+                      <div className="border border-border">
+                        <ImageWithLightbox
+                          src={s.image_url}
+                          alt={`${s.submitted_date} 제출 이미지`}
+                          width={200}
+                          height={120}
+                          className="w-16 h-10 object-cover"
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </>
+          )}
+          {teammateSubmissions.length > 0 && (
+            <p className="text-xs font-bold text-muted-foreground uppercase pt-1">팀원 제출 현황</p>
+          )}
           {teammateSubmissions.map((s) => {
             const status = STATUS_MAP[s.status];
             return (
