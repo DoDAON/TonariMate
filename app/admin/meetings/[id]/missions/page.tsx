@@ -37,7 +37,7 @@ export default async function MissionsPage({ params }: MissionsPageProps) {
 
   const { data: missions } = await supabase
     .from('missions')
-    .select('id, title, points, start_date, end_date, status')
+    .select('id, title, points, start_date, end_date, status, mission_type')
     .eq('meeting_id', id)
     .order('start_date', { ascending: false });
 

@@ -13,6 +13,7 @@ interface Mission {
   start_date: string;
   end_date: string;
   status: 'active' | 'completed';
+  mission_type: 'weekly' | 'team_naming';
 }
 
 interface AdminMissionListProps {
@@ -50,7 +51,9 @@ export function AdminMissionList({ missions, meetingId, pendingCounts = {} }: Ad
                 >
                   {effectiveStatus === 'active' ? '진행 중' : '종료'}
                 </span>
-                <span className="font-mono text-sm">{mission.points}pt</span>
+                <span className="font-mono text-sm">
+                  {mission.mission_type === 'weekly' ? '7~10pt' : `${mission.points}pt`}
+                </span>
                 {(pendingCounts[mission.id] ?? 0) > 0 && (
                   <span className="px-2 py-0.5 text-xs font-bold border-2 border-foreground bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 shrink-0">
                     미승인 {pendingCounts[mission.id]}건
