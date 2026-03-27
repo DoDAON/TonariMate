@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/storage/compress';
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 const MAX_SIZE = 20 * 1024 * 1024; // 20MB (압축 전 원본 허용 크기)
 
 export async function uploadAvatarImage(
@@ -9,7 +9,7 @@ export async function uploadAvatarImage(
   userId: string
 ): Promise<UploadResult> {
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return { success: false, error: 'JPEG, PNG, WebP 이미지만 업로드 가능합니다' };
+    return { success: false, error: 'JPEG, PNG, WebP, HEIC 이미지만 업로드 가능합니다' };
   }
 
   if (file.size > MAX_SIZE) {
@@ -50,7 +50,7 @@ export async function uploadMissionImage(
   teamId: string
 ): Promise<UploadResult> {
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return { success: false, error: 'JPEG, PNG, WebP 이미지만 업로드 가능합니다' };
+    return { success: false, error: 'JPEG, PNG, WebP, HEIC 이미지만 업로드 가능합니다' };
   }
 
   if (file.size > MAX_SIZE) {
@@ -86,7 +86,7 @@ export async function uploadDailyImage(
   date: string
 ): Promise<UploadResult> {
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return { success: false, error: 'JPEG, PNG, WebP 이미지만 업로드 가능합니다' };
+    return { success: false, error: 'JPEG, PNG, WebP, HEIC 이미지만 업로드 가능합니다' };
   }
 
   if (file.size > MAX_SIZE) {

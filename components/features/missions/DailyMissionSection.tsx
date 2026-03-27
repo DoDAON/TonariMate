@@ -333,7 +333,7 @@ export default function DailyMissionSection({
         <input
           ref={editInputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
           onChange={handleEditFileChange}
           className="hidden"
         />
@@ -433,7 +433,7 @@ export default function DailyMissionSection({
         <input
           ref={resubmitInputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
           onChange={handleResubmitFileChange}
           className="hidden"
         />
@@ -646,7 +646,7 @@ export default function DailyMissionSection({
       <input
         ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
         onChange={handleFileChange}
         className="hidden"
       />

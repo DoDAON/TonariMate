@@ -3,14 +3,27 @@ const JPEG_QUALITY = 0.85;
 
 /**
  * Canvas API를 이용해 이미지를 압축합니다.
+ * - HEIC/HEIF 파일은 먼저 JPEG로 변환
  * - 최대 1920px로 리사이즈 (비율 유지)
  * - JPEG quality 0.85로 인코딩
  * - 원본이 이미 작다면 그대로 반환
  */
 export async function compressImage(file: File): Promise<File> {
+  let sourceFile = file;
+
+  if (file.type === 'image/heic' || file.type === 'image/heif') {
+    const heic2any = (await import('heic2any')).default;
+    const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+    const blob = Array.isArray(converted) ? converted[0] : converted;
+    sourceFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+      type: 'image/jpeg',
+      lastModified: Date.now(),
+    });
+  }
+
   return new Promise((resolve) => {
     const img = new Image();
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl = URL.createObjectURL(sourceFile);
 
     img.onload = () => {
       URL.revokeObjectURL(objectUrl);
@@ -26,7 +39,7 @@ export async function compressImage(file: File): Promise<File> {
 
       const ctx = canvas.getContext('2d');
       if (!ctx) {
-        resolve(file);
+        resolve(sourceFile);
         return;
       }
       ctx.drawImage(img, 0, 0, targetW, targetH);
@@ -34,7 +47,7 @@ export async function compressImage(file: File): Promise<File> {
       canvas.toBlob(
         (blob) => {
           if (!blob) {
-            resolve(file);
+            resolve(sourceFile);
             return;
           }
           const compressed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
@@ -50,7 +63,7 @@ export async function compressImage(file: File): Promise<File> {
 
     img.onerror = () => {
       URL.revokeObjectURL(objectUrl);
-      resolve(file); // 압축 실패 시 원본 그대로
+      resolve(sourceFile); // 압축 실패 시 원본 그대로
     };
 
     img.src = objectUrl;
