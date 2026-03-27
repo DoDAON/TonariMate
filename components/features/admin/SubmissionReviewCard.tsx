@@ -20,6 +20,7 @@ export interface SubmissionForReview {
   team_number: number;
   member_count: number;
   submitted_by_name: string | null;
+  reviewed_by_name: string | null;
 }
 
 interface SubmissionReviewCardProps {
@@ -253,9 +254,15 @@ export function SubmissionReviewCard({
       )}
 
       {submission.status === 'approved' && (
-        <p className="text-sm font-mono font-bold border-t-2 border-border pt-2">
-          +{submission.points_awarded}pt 부여됨
-        </p>
+        <div className="flex items-center justify-between border-t-2 border-border pt-2">
+          <p className="text-sm font-mono font-bold">+{submission.points_awarded}pt 부여됨</p>
+          {submission.reviewed_by_name && (
+            <p className="text-xs text-muted-foreground">심사: {submission.reviewed_by_name}</p>
+          )}
+        </div>
+      )}
+      {submission.status === 'rejected' && submission.reviewed_by_name && (
+        <p className="text-xs text-muted-foreground border-t-2 border-border pt-2">심사: {submission.reviewed_by_name}</p>
       )}
     </div>
   );

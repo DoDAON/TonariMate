@@ -65,7 +65,7 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
   // 제출물 + 제출자 이름 조회
   const { data: submissions } = await supabase
     .from('mission_submissions')
-    .select('id, team_id, image_url, text_content, note, completed_at, status, points_awarded, created_at, submitted_by, users!mission_submissions_submitted_by_fkey(name)')
+    .select('id, team_id, image_url, text_content, note, completed_at, status, points_awarded, created_at, submitted_by, submitter:users!mission_submissions_submitted_by_fkey(name), reviewer:users!mission_submissions_reviewed_by_fkey(name)')
     .eq('mission_id', missionId);
 
   const submissionMap = new Map(submissions?.map((s) => [s.team_id, s]) ?? []);
@@ -89,7 +89,8 @@ export default async function AdminMissionDetailPage({ params }: MissionDetailPa
         team_name: t.name,
         team_number: t.team_number,
         member_count: memberCountMap.get(t.id) ?? 0,
-        submitted_by_name: (s.users as unknown as { name: string } | null)?.name ?? null,
+        submitted_by_name: (s.submitter as unknown as { name: string } | null)?.name ?? null,
+        reviewed_by_name: (s.reviewer as unknown as { name: string } | null)?.name ?? null,
       };
     });
 

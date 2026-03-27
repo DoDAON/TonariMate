@@ -22,6 +22,7 @@ export interface DailySubmissionWithUser extends DailySubmission {
   submitter_name: string | null;
   team_name: string | null;
   team_number: number | null;
+  reviewer_name: string | null;
 }
 
 /**
@@ -115,7 +116,7 @@ export async function getMeetingDailySubmissions(
 
   let query = supabase
     .from('daily_submissions')
-    .select('*, users!daily_submissions_submitted_by_fkey(name), teams(name, team_number)')
+    .select('*, users!daily_submissions_submitted_by_fkey(name), reviewer:users!daily_submissions_reviewed_by_fkey(name), teams(name, team_number)')
     .eq('meeting_id', meetingId)
     .order('submitted_date', { ascending: false });
 
@@ -146,6 +147,7 @@ export async function getMeetingDailySubmissions(
     submitter_name: (row.users as unknown as { name: string } | null)?.name ?? null,
     team_name: (row.teams as unknown as { name: string; team_number: number } | null)?.name ?? null,
     team_number: (row.teams as unknown as { name: string; team_number: number } | null)?.team_number ?? null,
+    reviewer_name: (row.reviewer as unknown as { name: string } | null)?.name ?? null,
   }));
 }
 

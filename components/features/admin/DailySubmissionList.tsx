@@ -82,6 +82,9 @@ function SubmissionCard({
           {sub.status === 'approved' && (
             <span className="text-xs font-mono font-bold">+3pt</span>
           )}
+          {(sub.status === 'approved' || sub.status === 'rejected') && sub.reviewer_name && (
+            <span className="text-xs text-muted-foreground">심사: {sub.reviewer_name}</span>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <span className="font-mono text-xs text-muted-foreground whitespace-nowrap">{sub.submitted_date}</span>
