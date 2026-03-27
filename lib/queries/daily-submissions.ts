@@ -64,7 +64,7 @@ export async function getUserWeekDailySubmissions(
     .eq('meeting_id', meetingId)
     .eq('submitted_by', userId)
     .eq('week_start', weekStart)
-    .order('submitted_date', { ascending: true });
+    .order('created_at', { ascending: true });
 
   if (error || !data) return [];
   return data;
@@ -118,7 +118,7 @@ export async function getMeetingDailySubmissions(
     .from('daily_submissions')
     .select('*, users!daily_submissions_submitted_by_fkey(name), reviewer:users!daily_submissions_reviewed_by_fkey(name), teams(name, team_number)')
     .eq('meeting_id', meetingId)
-    .order('submitted_date', { ascending: false });
+    .order('created_at', { ascending: false });
 
   if (weekStart) {
     query = query.eq('week_start', weekStart);
@@ -167,7 +167,7 @@ export async function getTeamDailySubmissions(
     .select('*, users!daily_submissions_submitted_by_fkey(name)')
     .eq('team_id', teamId)
     .neq('status', 'rejected')
-    .order('submitted_date', { ascending: true });
+    .order('created_at', { ascending: true });
 
   if (weekStart) {
     query = query.eq('week_start', weekStart);
