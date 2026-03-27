@@ -18,6 +18,7 @@ interface Mission {
 interface AdminMissionListProps {
   missions: Mission[];
   meetingId: string;
+  pendingCounts?: Record<string, number>;
 }
 
 function formatDate(dateStr: string): string {
@@ -25,7 +26,7 @@ function formatDate(dateStr: string): string {
 }
 
 
-export function AdminMissionList({ missions, meetingId }: AdminMissionListProps) {
+export function AdminMissionList({ missions, meetingId, pendingCounts = {} }: AdminMissionListProps) {
   async function handleDelete(missionId: string, title: string) {
     if (!confirm(`"${title}" 미션을 삭제하시겠습니까?`)) return;
     const result = await deleteMission(missionId, meetingId);
@@ -39,7 +40,7 @@ export function AdminMissionList({ missions, meetingId }: AdminMissionListProps)
         return (
           <div key={mission.id} className="card-brutal flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <span
                   className={`px-2 py-0.5 text-xs font-bold uppercase border-2 border-border shrink-0 ${
                     effectiveStatus === 'active'
@@ -50,6 +51,11 @@ export function AdminMissionList({ missions, meetingId }: AdminMissionListProps)
                   {effectiveStatus === 'active' ? '진행 중' : '종료'}
                 </span>
                 <span className="font-mono text-sm">{mission.points}pt</span>
+                {(pendingCounts[mission.id] ?? 0) > 0 && (
+                  <span className="px-2 py-0.5 text-xs font-bold border-2 border-foreground bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 shrink-0">
+                    미승인 {pendingCounts[mission.id]}건
+                  </span>
+                )}
               </div>
               <h3 className="font-black text-lg truncate">{mission.title}</h3>
               <p className="text-sm text-muted-foreground font-mono">

@@ -41,6 +41,19 @@ export default async function MissionsPage({ params }: MissionsPageProps) {
     .eq('meeting_id', id)
     .order('start_date', { ascending: false });
 
+  const missionIds = missions?.map((m) => m.id) ?? [];
+  const pendingCounts: Record<string, number> = {};
+  if (missionIds.length > 0) {
+    const { data: pendingSubmissions } = await supabase
+      .from('mission_submissions')
+      .select('mission_id')
+      .in('mission_id', missionIds)
+      .eq('status', 'pending');
+    pendingSubmissions?.forEach((s) => {
+      pendingCounts[s.mission_id] = (pendingCounts[s.mission_id] ?? 0) + 1;
+    });
+  }
+
   return (
     <div className="min-h-screen noise-overlay">
       <Header actions={<HeaderActions />} />
@@ -70,7 +83,7 @@ export default async function MissionsPage({ params }: MissionsPageProps) {
             description="미션을 생성하여 시작하세요"
           />
         ) : (
-          <AdminMissionList missions={missions} meetingId={id} />
+          <AdminMissionList missions={missions} meetingId={id} pendingCounts={pendingCounts} />
         )}
       </main>
     </div>

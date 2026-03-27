@@ -31,18 +31,20 @@ export default async function AdminMeetingPage({ params }: AdminMeetingPageProps
 
   if (error || !meeting) notFound();
 
-  const [membersResult, teamsResult, missionsResult, teamsListResult] = await Promise.all([
+  const [membersResult, teamsResult, missionsResult, teamsListResult, dailyPendingResult] = await Promise.all([
     supabase.from('meeting_members').select('*', { count: 'exact', head: true }).eq('meeting_id', id),
     supabase.from('teams').select('*', { count: 'exact', head: true }).eq('meeting_id', id),
     supabase.from('missions').select('*', { count: 'exact', head: true }).eq('meeting_id', id),
     supabase.from('teams').select('id, team_number, name').eq('meeting_id', id).order('team_number'),
+    supabase.from('daily_submissions').select('*', { count: 'exact', head: true }).eq('meeting_id', id).eq('status', 'pending'),
   ]);
+  const dailyPendingCount = dailyPendingResult.count ?? 0;
 
   const navItems = [
     { label: '모임 수정', href: ROUTES.ADMIN_MEETING_EDIT(id) },
     { label: `조 관리 (${teamsResult.count ?? 0}조)`, href: ROUTES.ADMIN_MEETING_TEAMS(id) },
     { label: `주간 미션 관리 (${missionsResult.count ?? 0})`, href: ROUTES.ADMIN_MEETING_MISSIONS(id) },
-    { label: '데일리 미션 관리', href: ROUTES.ADMIN_MEETING_DAILY(id) },
+    { label: `데일리 미션 관리${dailyPendingCount > 0 ? ` — 미승인 ${dailyPendingCount}건` : ''}`, href: ROUTES.ADMIN_MEETING_DAILY(id) },
     { label: '공지사항 관리', href: ROUTES.ADMIN_MEETING_ANNOUNCEMENTS(id) },
   ];
 
