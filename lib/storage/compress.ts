@@ -11,14 +11,27 @@ const JPEG_QUALITY = 0.85;
 export async function compressImage(file: File): Promise<File> {
   let sourceFile = file;
 
-  if (file.type === 'image/heic' || file.type === 'image/heif') {
-    const heic2any = (await import('heic2any')).default;
-    const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
-    const blob = Array.isArray(converted) ? converted[0] : converted;
-    sourceFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
-      type: 'image/jpeg',
-      lastModified: Date.now(),
-    });
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  const isHeicMime = file.type === 'image/heic' || file.type === 'image/heif';
+  const isHeicExt = ext === 'heic' || ext === 'heif';
+  // iOS Safari는 HEIC를 자동으로 JPEG 변환해서 넘겨줌 → type이 이미 표준 형식이면 heic2any 불필요
+  const alreadyReadable = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type);
+  if ((isHeicMime || isHeicExt) && !alreadyReadable) {
+    try {
+      const heic2any = (await import('heic2any')).default;
+      const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+      const blob = Array.isArray(converted) ? converted[0] : converted;
+      sourceFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+        type: 'image/jpeg',
+        lastModified: Date.now(),
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : (e as { message?: string })?.message ?? '';
+      // "already browser readable" = 브라우저가 이미 JPEG 등으로 변환한 경우 → 원본 그대로 사용
+      if (!msg.includes('already browser readable')) {
+        throw new Error(`HEIC 이미지를 변환할 수 없습니다: ${msg || 'HEIC 변환 실패'}`);
+      }
+    }
   }
 
   return new Promise((resolve) => {

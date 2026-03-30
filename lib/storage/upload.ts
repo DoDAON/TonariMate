@@ -4,11 +4,18 @@ import { compressImage } from '@/lib/storage/compress';
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 const MAX_SIZE = 20 * 1024 * 1024; // 20MB (압축 전 원본 허용 크기)
 
+/** iOS 등에서 HEIC 파일의 type이 ''로 오는 경우를 대비해 확장자도 함께 확인 */
+function isAllowedImageFile(file: File): boolean {
+  if (ALLOWED_TYPES.includes(file.type)) return true;
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  return ext === 'heic' || ext === 'heif';
+}
+
 export async function uploadAvatarImage(
   file: File,
   userId: string
 ): Promise<UploadResult> {
-  if (!ALLOWED_TYPES.includes(file.type)) {
+  if (!isAllowedImageFile(file)) {
     return { success: false, error: 'JPEG, PNG, WebP, HEIC 이미지만 업로드 가능합니다' };
   }
 
@@ -16,7 +23,12 @@ export async function uploadAvatarImage(
     return { success: false, error: '파일 크기는 20MB 이하여야 합니다' };
   }
 
-  const compressed = await compressImage(file);
+  let compressed: File;
+  try {
+    compressed = await compressImage(file);
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : '이미지 변환에 실패했습니다' };
+  }
   const path = `${userId}/avatar.jpg`;
 
   const supabase = createClient();
@@ -49,7 +61,7 @@ export async function uploadMissionImage(
   missionId: string,
   teamId: string
 ): Promise<UploadResult> {
-  if (!ALLOWED_TYPES.includes(file.type)) {
+  if (!isAllowedImageFile(file)) {
     return { success: false, error: 'JPEG, PNG, WebP, HEIC 이미지만 업로드 가능합니다' };
   }
 
@@ -57,7 +69,12 @@ export async function uploadMissionImage(
     return { success: false, error: '파일 크기는 20MB 이하여야 합니다' };
   }
 
-  const compressed = await compressImage(file);
+  let compressed: File;
+  try {
+    compressed = await compressImage(file);
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : '이미지 변환에 실패했습니다' };
+  }
   // teamId를 별도 폴더로 분리해야 Storage RLS의 foldername()[3]이 teamId를 올바르게 파싱함
   const path = `${meetingId}/${missionId}/${teamId}/image.jpg`;
 
@@ -85,7 +102,7 @@ export async function uploadDailyImage(
   userId: string,
   date: string
 ): Promise<UploadResult> {
-  if (!ALLOWED_TYPES.includes(file.type)) {
+  if (!isAllowedImageFile(file)) {
     return { success: false, error: 'JPEG, PNG, WebP, HEIC 이미지만 업로드 가능합니다' };
   }
 
@@ -93,7 +110,12 @@ export async function uploadDailyImage(
     return { success: false, error: '파일 크기는 20MB 이하여야 합니다' };
   }
 
-  const compressed = await compressImage(file);
+  let compressed: File;
+  try {
+    compressed = await compressImage(file);
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : '이미지 변환에 실패했습니다' };
+  }
   const path = `daily/${meetingId}/${userId}/${date}/image.jpg`;
 
   const supabase = createClient();
