@@ -19,6 +19,7 @@ interface MissionSubmissionFormProps {
   missionType: 'weekly' | 'team_naming';
   submissionId?: string;
   initialValues?: InitialValues;
+  onSuccess?: () => void;
 }
 
 export default function MissionSubmissionForm({
@@ -29,6 +30,7 @@ export default function MissionSubmissionForm({
   missionType,
   submissionId,
   initialValues,
+  onSuccess,
 }: MissionSubmissionFormProps) {
   const isTeamNaming = missionType === 'team_naming';
   const isUpdateMode = !!submissionId;
@@ -125,6 +127,7 @@ export default function MissionSubmissionForm({
 
     setSuccess(true);
     setLoading(false);
+    onSuccess?.();
   }
 
   if (success) {

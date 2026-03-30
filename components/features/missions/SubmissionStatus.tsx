@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { TeamSubmission } from '@/lib/queries/missions';
 import { ImageWithLightbox } from './ImageWithLightbox';
 import MissionSubmissionForm from './MissionSubmissionForm';
@@ -30,7 +30,16 @@ export default function SubmissionStatus({
   missionType,
   missionActive,
 }: SubmissionStatusProps) {
-  const [showForm, setShowForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [showModal]);
   const status = STATUS_MAP[submission.status];
   const submittedDate = new Date(submission.created_at).toLocaleDateString('ko-KR', {
     year: 'numeric',
@@ -112,32 +121,55 @@ export default function SubmissionStatus({
         <div className="border-t-2 border-border pt-4">
           <button
             type="button"
-            onClick={() => setShowForm((v) => !v)}
+            onClick={() => setShowModal(true)}
             className="btn-brutal bg-muted text-foreground text-sm"
           >
-            {showForm ? '닫기' : canResubmit ? '재제출' : '수정'}
+            {canResubmit ? '재제출' : '수정'}
           </button>
+        </div>
+      )}
 
-          {showForm && (
-            <div className="mt-4">
-              <MissionSubmissionForm
-                missionId={missionId}
-                meetingId={meetingId}
-                teamId={teamId}
-                userId={userId}
-                missionType={missionType}
-                submissionId={submission.id}
-                initialValues={{
-                  imageUrl: submission.image_url ?? undefined,
-                  note: submission.note ?? undefined,
-                  completedAt: submission.completed_at
-                    ? submission.completed_at.split('T')[0]
-                    : undefined,
-                  textContent: submission.text_content ?? undefined,
-                }}
-              />
+      {/* 수정 모달 */}
+      {showModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            className="card-brutal w-full max-w-lg max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-black text-lg uppercase tracking-tight">
+                {canResubmit ? '재제출' : '수정'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="text-muted-foreground hover:text-foreground font-bold text-lg leading-none"
+                aria-label="닫기"
+              >
+                ✕
+              </button>
             </div>
-          )}
+            <MissionSubmissionForm
+              missionId={missionId}
+              meetingId={meetingId}
+              teamId={teamId}
+              userId={userId}
+              missionType={missionType}
+              submissionId={submission.id}
+              initialValues={{
+                imageUrl: submission.image_url ?? undefined,
+                note: submission.note ?? undefined,
+                completedAt: submission.completed_at
+                  ? submission.completed_at.split('T')[0]
+                  : undefined,
+                textContent: submission.text_content ?? undefined,
+              }}
+              onSuccess={() => setShowModal(false)}
+            />
+          </div>
         </div>
       )}
     </div>
