@@ -81,18 +81,24 @@ export default function DailyMissionSection({
   const isDateOutOfWeek =
     completedAt !== '' && (completedAt < weekStart || completedAt > weekEnd);
   const isDateFuture = completedAt !== '' && completedAt > today;
-  const alreadySubmittedForDate =
+  const alreadySubmittedByMe =
     completedAt !== '' &&
     weekSubmissions.some(
       (s) => s.submitted_date === completedAt && s.status !== 'rejected'
     );
+  const teammateSubmissionOnDate =
+    completedAt !== ''
+      ? teamSubmissions.find((s) => s.submitted_by !== userId && s.submitted_date === completedAt)
+      : undefined;
 
   const dateError = isDateFuture
     ? '미래 날짜로는 제출할 수 없습니다'
     : isDateOutOfWeek
     ? '이번 주(월~일) 날짜만 선택할 수 있습니다'
-    : alreadySubmittedForDate
+    : alreadySubmittedByMe
     ? '해당 날짜에 이미 제출한 미션이 있습니다'
+    : teammateSubmissionOnDate
+    ? `${teammateSubmissionOnDate.submitter_name ?? '조원'}이 해당 날짜에 이미 제출했습니다`
     : null;
 
   const noteLen = note.trim().length;
