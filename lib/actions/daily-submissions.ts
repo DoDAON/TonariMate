@@ -48,30 +48,30 @@ export async function submitDailyMission(
     return { success: false, error: '미래 날짜로 제출할 수 없습니다' };
   }
 
-  // 해당 날짜 이미 제출 여부 확인
+  // 해당 날짜 조에서 이미 제출 여부 확인
   const { data: existing } = await supabase
     .from('daily_submissions')
     .select('id')
     .eq('meeting_id', meetingId)
-    .eq('submitted_by', userId)
+    .eq('team_id', teamId)
     .eq('submitted_date', completedAt)
     .single();
 
   if (existing) {
-    return { success: false, error: '해당 날짜에 이미 데일리 미션을 제출했습니다' };
+    return { success: false, error: '해당 날짜에 이미 우리 조에서 데일리 미션을 제출했습니다' };
   }
 
-  // 이번 주 제출 횟수 확인 (rejected 제외)
+  // 이번 주 조 제출 횟수 확인 (rejected 제외, 전체 조원 합산)
   const { count } = await supabase
     .from('daily_submissions')
     .select('*', { count: 'exact', head: true })
     .eq('meeting_id', meetingId)
-    .eq('submitted_by', userId)
+    .eq('team_id', teamId)
     .eq('week_start', weekStart)
     .neq('status', 'rejected');
 
   if ((count ?? 0) >= 5) {
-    return { success: false, error: '이번 주 데일리 미션 제출 횟수(5회)를 초과했습니다' };
+    return { success: false, error: '이번 주 우리 조의 데일리 미션 제출 횟수(5회)를 초과했습니다' };
   }
 
   const { error } = await supabase.from('daily_submissions').insert({
@@ -87,7 +87,7 @@ export async function submitDailyMission(
 
   if (error) {
     if (error.code === '23505') {
-      return { success: false, error: '오늘 이미 데일리 미션을 제출했습니다' };
+      return { success: false, error: '해당 날짜에 이미 우리 조에서 데일리 미션을 제출했습니다' };
     }
     return { success: false, error: '제출에 실패했습니다. 다시 시도해주세요.' };
   }
