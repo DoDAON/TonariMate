@@ -93,7 +93,8 @@ export async function uploadMissionImage(
     .from('mission-images')
     .getPublicUrl(path);
 
-  return { success: true, url: urlData.publicUrl };
+  // 같은 경로로 upsert 시 브라우저/Next.js 이미지 캐시가 갱신되도록 버전 파라미터 추가
+  return { success: true, url: `${urlData.publicUrl}?v=${Date.now()}` };
 }
 
 export async function uploadDailyImage(
