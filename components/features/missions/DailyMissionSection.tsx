@@ -22,6 +22,16 @@ const STATUS_MAP = {
   rejected: { label: '반려', className: 'bg-destructive text-destructive-foreground' },
 } as const;
 
+/** 한국어 이름 끝 글자 받침 유무에 따라 "이" 또는 "가" 반환 */
+function josaIGa(name: string): string {
+  const last = name[name.length - 1];
+  const code = last?.charCodeAt(0) ?? 0;
+  if (code >= 0xac00 && code <= 0xd7a3) {
+    return (code - 0xac00) % 28 === 0 ? '가' : '이';
+  }
+  return '이';
+}
+
 /** KST 기준 오늘 날짜 문자열 */
 function getKSTToday(): string {
   return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date());
@@ -98,7 +108,7 @@ export default function DailyMissionSection({
     : alreadySubmittedByMe
     ? '해당 날짜에 이미 제출한 미션이 있습니다'
     : teammateSubmissionOnDate
-    ? `${teammateSubmissionOnDate.submitter_name ?? '조원'}이 해당 날짜에 이미 제출했습니다`
+    ? `${teammateSubmissionOnDate.submitter_name ?? '조원'}${josaIGa(teammateSubmissionOnDate.submitter_name ?? '조원')} 해당 날짜에 이미 제출했습니다`
     : null;
 
   const noteLen = note.trim().length;
