@@ -31,11 +31,16 @@ export function MissionSection({ missions, meetingId }: MissionSectionProps) {
         />
       )}
       {missions.completed.length > 0 && (
-        <MissionGroup
-          title="완료"
-          missions={missions.completed}
-          meetingId={meetingId}
-        />
+        <div>
+          <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">
+            완료 ({missions.completed.length})
+          </h3>
+          <Link href={ROUTES.MEETING_MISSIONS(meetingId)} className="block">
+            <div className="card-brutal transition-all duration-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:[box-shadow:var(--shadow-brutal-lg)] active:translate-x-[2px] active:translate-y-[2px] active:[box-shadow:var(--shadow-brutal-sm)] text-center">
+              <span className="font-bold">완료된 주간미션 보러 가기 →</span>
+            </div>
+          </Link>
+        </div>
       )}
     </div>
   );

@@ -6,6 +6,7 @@ export const ROUTES = {
   MEETING: (id: string) => `/meetings/${id}`,
   TEAM: (meetingId: string, teamId: string) => `/meetings/${meetingId}/teams/${teamId}`,
   MISSION: (meetingId: string, missionId: string) => `/meetings/${meetingId}/missions/${missionId}`,
+  MEETING_MISSIONS: (id: string) => `/meetings/${id}/missions`,
 
   // 관리자
   ADMIN: '/admin',
