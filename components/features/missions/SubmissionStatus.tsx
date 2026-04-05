@@ -19,6 +19,8 @@ interface SubmissionStatusProps {
   userId: string;
   missionType: 'weekly' | 'team_naming';
   missionActive: boolean;
+  missionStartDate?: string;
+  missionEndDate?: string;
 }
 
 export default function SubmissionStatus({
@@ -29,6 +31,8 @@ export default function SubmissionStatus({
   userId,
   missionType,
   missionActive,
+  missionStartDate,
+  missionEndDate,
 }: SubmissionStatusProps) {
   const [showModal, setShowModal] = useState(false);
 
@@ -168,6 +172,8 @@ export default function SubmissionStatus({
                 textContent: submission.text_content ?? undefined,
               }}
               onSuccess={() => setShowModal(false)}
+              startDate={missionStartDate}
+              endDate={missionEndDate}
             />
           </div>
         </div>

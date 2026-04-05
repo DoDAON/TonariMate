@@ -45,11 +45,9 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
   const today = getTodayStr();
   const weekStart = getWeekStart(today, meeting.start_date);
 
-  // 팀, 미션 병렬 조회
-  const [team, missions] = await Promise.all([
-    getUserTeamInMeeting(id, userId),
-    getMeetingMissions(id),
-  ]);
+  // 팀 조회 후 미션 조회 (제출 상태 포함)
+  const team = await getUserTeamInMeeting(id, userId);
+  const missions = await getMeetingMissions(id, team?.id);
 
   // 데일리 미션 데이터 (팀이 있는 경우만)
   const [todayDailySubmission, weeklyDailyCount] = team

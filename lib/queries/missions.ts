@@ -14,6 +14,7 @@ export interface MissionSummary {
   end_date: string;
   status: MissionStatus;
   mission_type: MissionType;
+  teamSubmissionStatus?: 'pending' | 'approved' | 'rejected';
 }
 
 export interface CategorizedMissions {
@@ -22,7 +23,8 @@ export interface CategorizedMissions {
 }
 
 export async function getMeetingMissions(
-  meetingId: string
+  meetingId: string,
+  teamId?: string
 ): Promise<CategorizedMissions> {
   const supabase = await createClient();
 
@@ -36,9 +38,23 @@ export async function getMeetingMissions(
     return { active: [], completed: [] };
   }
 
+  let submissionMap = new Map<string, 'pending' | 'approved' | 'rejected'>();
+  if (teamId) {
+    const { data: submissions } = await supabase
+      .from('mission_submissions')
+      .select('mission_id, status')
+      .eq('team_id', teamId);
+    if (submissions) {
+      submissionMap = new Map(
+        submissions.map((s) => [s.mission_id, s.status as 'pending' | 'approved' | 'rejected'])
+      );
+    }
+  }
+
   const withEffective = data.map((m) => ({
     ...m,
     status: getEffectiveMissionStatus(m.status, m.end_date),
+    teamSubmissionStatus: submissionMap.get(m.id),
   }));
 
   return {

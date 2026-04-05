@@ -71,7 +71,17 @@ interface MissionItemProps {
   meetingId: string;
 }
 
+const SUBMISSION_STATUS_MAP = {
+  pending: { label: '승인 대기', className: 'bg-amber-400 text-amber-900 border-amber-500' },
+  approved: { label: '승인됨', className: 'bg-primary text-primary-foreground border-primary' },
+  rejected: { label: '반려됨', className: 'bg-destructive text-destructive-foreground border-destructive' },
+} as const;
+
 function MissionItem({ mission, meetingId }: MissionItemProps) {
+  const submissionStatus = mission.teamSubmissionStatus
+    ? SUBMISSION_STATUS_MAP[mission.teamSubmissionStatus]
+    : null;
+
   return (
     <Link href={ROUTES.MISSION(meetingId, mission.id)} className="block">
       <div className="card-brutal transition-all duration-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:[box-shadow:var(--shadow-brutal-lg)] active:translate-x-[2px] active:translate-y-[2px] active:[box-shadow:var(--shadow-brutal-sm)]">
@@ -89,9 +99,16 @@ function MissionItem({ mission, meetingId }: MissionItemProps) {
               {mission.description}
             </p>
           </div>
-          <span className="font-mono font-bold whitespace-nowrap shrink-0">
-            {mission.mission_type === 'team_naming' ? '10pt' : '7~10pt'}
-          </span>
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <span className="font-mono font-bold whitespace-nowrap">
+              {mission.mission_type === 'team_naming' ? '10pt' : '7~10pt'}
+            </span>
+            {submissionStatus && (
+              <span className={`px-2 py-0.5 text-xs font-bold border ${submissionStatus.className}`}>
+                {submissionStatus.label}
+              </span>
+            )}
+          </div>
         </div>
         <p className="text-muted-foreground text-xs font-mono mt-2 break-all">
           {mission.start_date} ~ {mission.end_date}

@@ -162,6 +162,8 @@ export default async function MissionPage({ params }: MissionPageProps) {
                 userId={user.id}
                 missionType={mission.mission_type}
                 missionActive={mission.status === 'active' && !meetingEnded}
+                missionStartDate={mission.start_date}
+                missionEndDate={mission.end_date}
               />
               {meetingEnded && (
                 <p className="mt-3 text-xs text-muted-foreground">
@@ -184,6 +186,8 @@ export default async function MissionPage({ params }: MissionPageProps) {
               teamId={team.id}
               userId={user.id}
               missionType={mission.mission_type}
+              startDate={mission.start_date}
+              endDate={mission.end_date}
             />
           ) : (
             <p className="text-sm text-muted-foreground">

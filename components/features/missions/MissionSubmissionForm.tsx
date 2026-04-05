@@ -20,6 +20,8 @@ interface MissionSubmissionFormProps {
   submissionId?: string;
   initialValues?: InitialValues;
   onSuccess?: () => void;
+  startDate?: string;
+  endDate?: string;
 }
 
 export default function MissionSubmissionForm({
@@ -31,6 +33,8 @@ export default function MissionSubmissionForm({
   submissionId,
   initialValues,
   onSuccess,
+  startDate,
+  endDate,
 }: MissionSubmissionFormProps) {
   const isTeamNaming = missionType === 'team_naming';
   const isUpdateMode = !!submissionId;
@@ -216,6 +220,8 @@ export default function MissionSubmissionForm({
         <input
           type="date"
           value={completedAt}
+          min={startDate}
+          max={endDate}
           onChange={(e) => setCompletedAt(e.target.value)}
           className="input-brutal w-full"
           required
