@@ -15,13 +15,13 @@ export function formatTeamName(teamNumber: number, name: string): string {
 
 /**
  * 종료일이 지났거나 status가 completed면 'completed', 아니면 'active'
+ * KST(UTC+9) 기준 날짜 문자열 비교: 종료일 당일은 active, 다음 날 자정 이후 completed
  */
 export function getEffectiveMissionStatus(
   status: 'active' | 'completed',
   endDate: string
 ): 'active' | 'completed' {
   if (status === 'completed') return 'completed';
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return new Date(endDate) < today ? 'completed' : 'active';
+  const todayKST = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split('T')[0];
+  return endDate < todayKST ? 'completed' : 'active';
 }

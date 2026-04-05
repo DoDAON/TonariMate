@@ -28,10 +28,9 @@ function formatDate(dateStr: string): string {
 }
 
 function getRemainingDays(endDate: string): number {
-  const now = new Date();
-  const end = new Date(endDate);
-  const diff = end.getTime() - now.getTime();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  const todayKST = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const msPerDay = 1000 * 60 * 60 * 24;
+  return Math.round((new Date(endDate).getTime() - new Date(todayKST).getTime()) / msPerDay);
 }
 
 export default async function MissionPage({ params }: MissionPageProps) {
