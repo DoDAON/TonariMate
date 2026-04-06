@@ -1,6 +1,6 @@
 ---
 name: tonari-review
-description: TonariMate 프로젝트 전체 코드베이스 아키텍처 리뷰. diff 무관하게 현재 코드 전체를 읽고 누적된 패턴 위반, 구조적 문제, 기술 부채를 리포트한다. 수정은 하지 않는다.
+description: TonariMate 프로젝트 전체 코드베이스 아키텍처 리뷰. diff 무관하게 현재 코드 전체를 읽고 누적된 패턴 위반, 구조적 문제, 기술 부채를 리포트한다. 수정은 하지 않는다. TRIGGER when: 유저가 "코드 리뷰", "전체 리뷰", "아키텍처 점검", "기술 부채", "review"라고 하거나, 개발이 쌓인 후 전체적으로 돌아보고 싶다고 할 때. DO NOT TRIGGER when: 특정 파일/기능 범위가 좁은 리뷰 요청이거나 /tonari-refactor만 요청하는 경우.
 ---
 
 # TonariMate Code Review

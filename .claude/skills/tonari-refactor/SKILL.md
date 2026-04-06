@@ -1,6 +1,6 @@
 ---
 name: tonari-refactor
-description: TonariMate 프로젝트 코드 리팩토링. 변경된 파일을 분석해 프로젝트 패턴과 CLAUDE.md 규칙 기준으로 개선점을 찾고 적용한다.
+description: TonariMate 프로젝트 코드 리팩토링. 변경된 파일을 분석해 프로젝트 패턴과 CLAUDE.md 규칙 기준으로 개선점을 찾고 적용한다. TRIGGER when: 유저가 "리팩토링", "코드 정리", "정리해줘", "refactor"라고 하거나, /tonari-review 결과 후 "고쳐줘"/"수정해줘"라고 할 때. DO NOT TRIGGER when: 특정 버그 수정·기능 추가 요청이거나 /tonari-review만 요청하는 경우.
 ---
 
 # TonariMate Refactor
