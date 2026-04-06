@@ -5,17 +5,12 @@ import { Header } from '@/components/layouts/Header';
 import { HeaderActions } from '@/components/layouts/HeaderActions';
 import { getMeetingMissions } from '@/lib/queries/missions';
 import { getUserTeamInMeeting } from '@/lib/queries/teams';
+import { SUBMISSION_STATUS_MAP } from '@/lib/constants/missions';
 import Link from 'next/link';
 
 interface MissionsPageProps {
   params: Promise<{ id: string }>;
 }
-
-const SUBMISSION_STATUS_MAP = {
-  pending: { label: '승인 대기', className: 'bg-amber-400 text-amber-900 border-amber-500' },
-  approved: { label: '승인됨', className: 'bg-primary text-primary-foreground border-primary' },
-  rejected: { label: '반려됨', className: 'bg-destructive text-destructive-foreground border-destructive' },
-} as const;
 
 export default async function CompletedMissionsPage({ params }: MissionsPageProps) {
   const { id: meetingId } = await params;

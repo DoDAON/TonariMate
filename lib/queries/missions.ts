@@ -4,6 +4,7 @@ import type { Database } from '@/types/database';
 
 type MissionStatus = Database['public']['Enums']['mission_status'];
 type MissionType = Database['public']['Enums']['mission_type'];
+type SubmissionStatus = Database['public']['Enums']['submission_status'];
 
 export interface MissionSummary {
   id: string;
@@ -14,7 +15,7 @@ export interface MissionSummary {
   end_date: string;
   status: MissionStatus;
   mission_type: MissionType;
-  teamSubmissionStatus?: 'pending' | 'approved' | 'rejected';
+  teamSubmissionStatus?: SubmissionStatus;
 }
 
 export interface CategorizedMissions {
@@ -38,7 +39,7 @@ export async function getMeetingMissions(
     return { active: [], completed: [] };
   }
 
-  let submissionMap = new Map<string, 'pending' | 'approved' | 'rejected'>();
+  let submissionMap = new Map<string, SubmissionStatus>();
   if (teamId) {
     const { data: submissions } = await supabase
       .from('mission_submissions')
@@ -46,7 +47,7 @@ export async function getMeetingMissions(
       .eq('team_id', teamId);
     if (submissions) {
       submissionMap = new Map(
-        submissions.map((s) => [s.mission_id, s.status as 'pending' | 'approved' | 'rejected'])
+        submissions.map((s) => [s.mission_id, s.status])
       );
     }
   }

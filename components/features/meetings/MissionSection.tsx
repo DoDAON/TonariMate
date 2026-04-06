@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ROUTES } from '@/lib/constants/routes';
+import { SUBMISSION_STATUS_MAP } from '@/lib/constants/missions';
 import { EmptyState } from '@/components/shared/EmptyState';
 import type { CategorizedMissions, MissionSummary } from '@/lib/queries/missions';
 
@@ -75,12 +76,6 @@ interface MissionItemProps {
   mission: MissionSummary;
   meetingId: string;
 }
-
-const SUBMISSION_STATUS_MAP = {
-  pending: { label: '승인 대기', className: 'bg-amber-400 text-amber-900 border-amber-500' },
-  approved: { label: '승인됨', className: 'bg-primary text-primary-foreground border-primary' },
-  rejected: { label: '반려됨', className: 'bg-destructive text-destructive-foreground border-destructive' },
-} as const;
 
 function MissionItem({ mission, meetingId }: MissionItemProps) {
   const submissionStatus = mission.teamSubmissionStatus
