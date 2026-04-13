@@ -59,7 +59,7 @@ function MissionGroup({ title, missions, meetingId }: MissionGroupProps) {
       <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">
         {title} ({missions.length})
       </h3>
-      <div className="grid gap-3">
+      <div className="grid grid-cols-1 gap-3">
         {missions.map((mission) => (
           <MissionItem
             key={mission.id}
@@ -88,7 +88,7 @@ function MissionItem({ mission, meetingId }: MissionItemProps) {
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="font-bold truncate">{mission.title}</h4>
+              <h4 className="font-bold truncate min-w-0">{mission.title}</h4>
               {mission.mission_type === 'team_naming' && (
                 <span className="text-xs font-bold border border-border px-1.5 py-0.5 bg-muted shrink-0">
                   조 이름
