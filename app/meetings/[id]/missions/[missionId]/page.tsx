@@ -218,7 +218,7 @@ export default async function MissionPage({ params }: MissionPageProps) {
         </section>
 
         {/* 개인 미션: 팀원 제출 현황 */}
-        {isIndividualMission && team && teamIndividualSubmissions.length > 0 && (
+        {isIndividualMission && team && teamIndividualSubmissions.filter((m) => m.userId !== user.id).length > 0 && (
           <section className="mt-6 card-brutal">
             <h2 className="text-lg font-black tracking-tight uppercase mb-4">
               팀원 제출 현황{' '}
@@ -227,7 +227,7 @@ export default async function MissionPage({ params }: MissionPageProps) {
               </span>
             </h2>
             <div className="space-y-4">
-              {teamIndividualSubmissions.map((member) => {
+              {teamIndividualSubmissions.filter((m) => m.userId !== user.id).map((member) => {
                 const s = member.submission;
                 const statusInfo = s ? SUBMISSION_STATUS_MAP[s.status] : null;
                 return (
