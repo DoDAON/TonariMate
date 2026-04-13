@@ -177,7 +177,7 @@ export interface Database {
           end_date: string;
           max_participants: number | null;
           status: 'active' | 'completed';
-          mission_type: 'weekly' | 'team_naming';
+          mission_type: 'weekly' | 'team_naming' | 'individual';
           created_at: string;
           updated_at: string;
         };
@@ -191,7 +191,7 @@ export interface Database {
           end_date: string;
           max_participants?: number | null;
           status?: 'active' | 'completed';
-          mission_type?: 'weekly' | 'team_naming';
+          mission_type?: 'weekly' | 'team_naming' | 'individual';
           created_at?: string;
           updated_at?: string;
         };
@@ -205,7 +205,7 @@ export interface Database {
           end_date?: string;
           max_participants?: number | null;
           status?: 'active' | 'completed';
-          mission_type?: 'weekly' | 'team_naming';
+          mission_type?: 'weekly' | 'team_naming' | 'individual';
           created_at?: string;
           updated_at?: string;
         };
@@ -304,6 +304,7 @@ export interface Database {
           id: string;
           team_id: string;
           mission_id: string | null;
+          submission_id: string | null;
           amount: number;
           reason: string;
           created_at: string;
@@ -312,6 +313,7 @@ export interface Database {
           id?: string;
           team_id: string;
           mission_id?: string | null;
+          submission_id?: string | null;
           amount: number;
           reason: string;
           created_at?: string;
@@ -320,6 +322,7 @@ export interface Database {
           id?: string;
           team_id?: string;
           mission_id?: string | null;
+          submission_id?: string | null;
           amount?: number;
           reason?: string;
           created_at?: string;
@@ -337,6 +340,13 @@ export interface Database {
             columns: ['mission_id'];
             isOneToOne: false;
             referencedRelation: 'missions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'points_submission_id_fkey';
+            columns: ['submission_id'];
+            isOneToOne: false;
+            referencedRelation: 'mission_submissions';
             referencedColumns: ['id'];
           },
         ];
@@ -553,7 +563,7 @@ export interface Database {
     Enums: {
       user_role: 'user' | 'admin';
       mission_status: 'active' | 'completed';
-      mission_type: 'weekly' | 'team_naming';
+      mission_type: 'weekly' | 'team_naming' | 'individual';
       submission_status: 'pending' | 'approved' | 'rejected';
       meeting_member_role: 'member' | 'admin';
     };
