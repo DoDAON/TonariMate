@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createMission, updateMission } from '@/lib/actions/admin-missions';
 import { ROUTES } from '@/lib/constants/routes';
 
-type MissionType = 'weekly' | 'team_naming';
+type MissionType = 'weekly' | 'team_naming' | 'individual';
 type EndDateOption = '1week' | '2weeks';
 
 interface MissionFormProps {
@@ -17,6 +17,7 @@ interface MissionFormProps {
     description: string;
     start_date: string;
     end_date: string;
+    points?: number;
     mission_type?: MissionType;
   };
   /** edit 모드에서 종료일이 이미 지났는지 여부 */
@@ -50,6 +51,9 @@ export function MissionForm({ meetingId, mode, missionId, defaultValues, isExpir
   const [missionType, setMissionType] = useState<MissionType>(
     defaultValues?.mission_type ?? 'weekly'
   );
+  const [pointsPerPerson, setPointsPerPerson] = useState(
+    defaultValues?.mission_type === 'individual' ? (defaultValues.points ?? 1) : 1
+  );
   const [startDate, setStartDate] = useState(defaultValues?.start_date ?? '');
   const [endDateOption, setEndDateOption] = useState<EndDateOption>(
     mode === 'edit' && defaultValues?.start_date && defaultValues?.end_date
@@ -60,6 +64,7 @@ export function MissionForm({ meetingId, mode, missionId, defaultValues, isExpir
   const computedEndDate = calcEndDate(startDate, endDateOption);
 
   const isTeamNaming = missionType === 'team_naming';
+  const isIndividual = missionType === 'individual';
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -92,8 +97,8 @@ export function MissionForm({ meetingId, mode, missionId, defaultValues, isExpir
         <input type="hidden" name="mission_type" value={missionType} />
         {mode === 'edit' ? (
           // 수정 모드: 전체 선택지 표시 but 클릭 불가
-          <div className="flex gap-2">
-            {(['weekly', 'team_naming'] as MissionType[]).map((type) => (
+          <div className="flex gap-2 flex-wrap">
+            {(['weekly', 'team_naming', 'individual'] as MissionType[]).map((type) => (
               <div
                 key={type}
                 className={`px-4 py-2 text-sm font-bold border-2 transition-all duration-100 ${
@@ -102,34 +107,30 @@ export function MissionForm({ meetingId, mode, missionId, defaultValues, isExpir
                     : 'bg-muted text-muted-foreground border-border'
                 }`}
               >
-                {type === 'weekly' ? '일반' : '조 이름 정하기'}
+                {type === 'weekly' ? '일반' : type === 'team_naming' ? '조 이름 정하기' : '개인 미션'}
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setMissionType('weekly')}
-              className={`px-4 py-2 text-sm font-bold border-2 border-foreground transition-all duration-100 ${
-                missionType === 'weekly'
-                  ? 'bg-foreground text-background'
-                  : 'bg-background text-foreground hover:translate-x-[-1px] hover:translate-y-[-1px] hover:[box-shadow:2px_2px_0_var(--foreground)]'
-              }`}
-            >
-              일반
-            </button>
-            <button
-              type="button"
-              onClick={() => setMissionType('team_naming')}
-              className={`px-4 py-2 text-sm font-bold border-2 border-foreground transition-all duration-100 ${
-                missionType === 'team_naming'
-                  ? 'bg-foreground text-background'
-                  : 'bg-background text-foreground hover:translate-x-[-1px] hover:translate-y-[-1px] hover:[box-shadow:2px_2px_0_var(--foreground)]'
-              }`}
-            >
-              조 이름 정하기
-            </button>
+          <div className="flex gap-2 flex-wrap">
+            {([
+              { value: 'weekly', label: '일반' },
+              { value: 'team_naming', label: '조 이름 정하기' },
+              { value: 'individual', label: '개인 미션' },
+            ] as { value: MissionType; label: string }[]).map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setMissionType(value)}
+                className={`px-4 py-2 text-sm font-bold border-2 border-foreground transition-all duration-100 ${
+                  missionType === value
+                    ? 'bg-foreground text-background'
+                    : 'bg-background text-foreground hover:translate-x-[-1px] hover:translate-y-[-1px] hover:[box-shadow:2px_2px_0_var(--foreground)]'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -143,6 +144,11 @@ export function MissionForm({ meetingId, mode, missionId, defaultValues, isExpir
           <>
             <input type="hidden" name="title" value="조 이름 정하기" />
             <div className="input-brutal w-full bg-muted text-muted-foreground">조 이름 정하기</div>
+          </>
+        ) : isIndividual ? (
+          <>
+            <input type="hidden" name="title" value="개인 미션" />
+            <div className="input-brutal w-full bg-muted text-muted-foreground">개인 미션</div>
           </>
         ) : (
           <input
@@ -226,6 +232,36 @@ export function MissionForm({ meetingId, mode, missionId, defaultValues, isExpir
           )}
         </div>
       </div>
+
+      {/* 개인 미션 포인트 설정 */}
+      {isIndividual && (
+        <div>
+          <label className="block text-sm font-bold uppercase mb-1">
+            1인당 포인트 *
+          </label>
+          <input type="hidden" name="points_per_person" value={pointsPerPerson} />
+          <div className="flex gap-2">
+            {[1, 2, 3, 4, 5].map((pt) => (
+              <button
+                key={pt}
+                type="button"
+                onClick={() => setPointsPerPerson(pt)}
+                disabled={mode === 'edit'}
+                className={`px-4 py-2 text-sm font-bold border-2 border-foreground transition-all duration-100 disabled:opacity-60 disabled:cursor-not-allowed ${
+                  pointsPerPerson === pt
+                    ? 'bg-foreground text-background'
+                    : 'bg-background text-foreground hover:translate-x-[-1px] hover:translate-y-[-1px] hover:[box-shadow:2px_2px_0_var(--foreground)]'
+                }`}
+              >
+                {pt}pt
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            조원 1인이 승인될 때마다 조에 부여되는 포인트
+          </p>
+        </div>
+      )}
 
       {mode === 'edit' && isExpired && (
         <p className="text-sm text-muted-foreground border-2 border-border p-2 bg-muted">

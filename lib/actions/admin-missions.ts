@@ -30,6 +30,7 @@ async function recalcTeamPoints(supabase: Awaited<ReturnType<typeof import('@/li
 export async function createMission(meetingId: string, formData: FormData): Promise<ActionResult> {
   const missionType = (formData.get('mission_type') as string) || 'weekly';
   const isTeamNaming = missionType === 'team_naming';
+  const isIndividual = missionType === 'individual';
 
   const rawTitle = formData.get('title') as string;
   const title = isTeamNaming ? '조 이름 정하기' : rawTitle;
@@ -41,8 +42,16 @@ export async function createMission(meetingId: string, formData: FormData): Prom
     return { success: false, error: '필수 항목을 모두 입력해주세요' };
   }
 
-  // team_naming은 포인트 10 고정, 일반은 기본값 0 (승인 시 드롭다운으로 설정)
-  const points = isTeamNaming ? 10 : 0;
+  // team_naming은 포인트 10 고정, individual은 폼에서 설정 (1~5), 일반은 기본값 0 (승인 시 드롭다운으로 설정)
+  let points: number;
+  if (isTeamNaming) {
+    points = 10;
+  } else if (isIndividual) {
+    const rawPoints = parseInt(formData.get('points_per_person') as string, 10);
+    points = Number.isFinite(rawPoints) && rawPoints >= 1 && rawPoints <= 5 ? rawPoints : 1;
+  } else {
+    points = 0;
+  }
 
   const supabase = await createClient();
 
@@ -56,7 +65,7 @@ export async function createMission(meetingId: string, formData: FormData): Prom
       start_date: startDate,
       end_date: endDate,
       status: computeStatus(endDate),
-      mission_type: missionType as 'weekly' | 'team_naming',
+      mission_type: missionType as 'weekly' | 'team_naming' | 'individual',
     })
     .select('id')
     .single();
@@ -85,6 +94,7 @@ export async function updateMission(
 ): Promise<ActionResult> {
   const missionType = (formData.get('mission_type') as string) || 'weekly';
   const isTeamNaming = missionType === 'team_naming';
+  const isIndividual = missionType === 'individual';
 
   const rawTitle = formData.get('title') as string;
   const title = isTeamNaming ? '조 이름 정하기' : rawTitle;
@@ -98,8 +108,14 @@ export async function updateMission(
 
   const supabase = await createClient();
 
-  // team_naming 타입은 포인트 10 고정
-  const points = isTeamNaming ? 10 : undefined;
+  // team_naming: 10pt 고정, individual: 폼에서 설정, weekly: 변경 없음
+  let points: number | undefined;
+  if (isTeamNaming) {
+    points = 10;
+  } else if (isIndividual) {
+    const rawPoints = parseInt(formData.get('points_per_person') as string, 10);
+    points = Number.isFinite(rawPoints) && rawPoints >= 1 && rawPoints <= 5 ? rawPoints : 1;
+  }
 
   const updateData: Record<string, unknown> = {
     title: title.trim(),
@@ -107,7 +123,7 @@ export async function updateMission(
     start_date: startDate,
     end_date: endDate,
     status: computeStatus(endDate),
-    mission_type: missionType,
+    mission_type: missionType as 'weekly' | 'team_naming' | 'individual',
   };
   if (points !== undefined) {
     updateData.points = points;
