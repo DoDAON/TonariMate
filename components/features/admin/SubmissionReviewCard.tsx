@@ -15,7 +15,7 @@ export interface SubmissionForReview {
   status: 'pending' | 'approved' | 'rejected';
   points_awarded: number;
   created_at: string;
-  mission_type: 'weekly' | 'team_naming';
+  mission_type: 'weekly' | 'team_naming' | 'individual';
   team_name: string;
   team_number: number;
   member_count: number;

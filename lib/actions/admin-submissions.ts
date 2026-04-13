@@ -69,6 +69,7 @@ export async function reviewSubmission(
     const { error: pointsError } = await supabase.from('points').insert({
       team_id: submission.team_id,
       mission_id: submission.mission_id,
+      submission_id: mission?.mission_type === 'individual' ? submissionId : null,
       amount: awardPoints,
       reason: '미션 완료',
     });
@@ -127,11 +128,22 @@ export async function deleteSubmission(
 
   // 승인된 경우 포인트 회수
   if (submission.status === 'approved') {
-    await supabase
-      .from('points')
-      .delete()
-      .eq('team_id', submission.team_id)
-      .eq('mission_id', submission.mission_id);
+    // 개인 미션: points.submission_id FK의 ON DELETE CASCADE가 처리
+    // 팀 미션: 직접 삭제 (submission_id가 null)
+    const { data: missionInfo } = await supabase
+      .from('missions')
+      .select('mission_type')
+      .eq('id', submission.mission_id)
+      .single();
+
+    if (missionInfo?.mission_type !== 'individual') {
+      await supabase
+        .from('points')
+        .delete()
+        .eq('team_id', submission.team_id)
+        .eq('mission_id', submission.mission_id)
+        .is('submission_id', null);
+    }
 
     await recalcTeamPoints(supabase, submission.team_id);
   }
