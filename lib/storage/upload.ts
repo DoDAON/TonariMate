@@ -97,6 +97,48 @@ export async function uploadMissionImage(
   return { success: true, url: `${urlData.publicUrl}?v=${Date.now()}` };
 }
 
+export async function uploadIndividualMissionImage(
+  file: File,
+  meetingId: string,
+  missionId: string,
+  teamId: string,
+  userId: string
+): Promise<UploadResult> {
+  if (!isAllowedImageFile(file)) {
+    return { success: false, error: 'JPEG, PNG, WebP, HEIC 이미지만 업로드 가능합니다' };
+  }
+
+  if (file.size > MAX_SIZE) {
+    return { success: false, error: '파일 크기는 20MB 이하여야 합니다' };
+  }
+
+  let compressed: File;
+  try {
+    compressed = await compressImage(file);
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : '이미지 변환에 실패했습니다' };
+  }
+  // 개인 미션: 조원별 별도 경로
+  const path = `${meetingId}/${missionId}/${teamId}/${userId}/image.jpg`;
+
+  const supabase = createClient();
+
+  const { error } = await supabase.storage
+    .from('mission-images')
+    .upload(path, compressed, { upsert: true, contentType: 'image/jpeg' });
+
+  if (error) {
+    console.error('[Individual mission upload error]', error.message, error);
+    return { success: false, error: `이미지 업로드에 실패했습니다: ${error.message}` };
+  }
+
+  const { data: urlData } = supabase.storage
+    .from('mission-images')
+    .getPublicUrl(path);
+
+  return { success: true, url: `${urlData.publicUrl}?v=${Date.now()}` };
+}
+
 export async function uploadDailyImage(
   file: File,
   meetingId: string,

@@ -38,6 +38,21 @@ export async function submitMission(
   }
 
   const isTeamNaming = mission.mission_type === 'team_naming';
+  const isIndividual = mission.mission_type === 'individual';
+
+  // 개인 미션이 아닌 경우 조 단위 중복 제출 방지 (DB 제약 변경으로 앱 레벨에서 검사)
+  if (!isIndividual) {
+    const { data: existing } = await supabase
+      .from('mission_submissions')
+      .select('id')
+      .eq('mission_id', missionId)
+      .eq('team_id', teamId)
+      .maybeSingle();
+
+    if (existing) {
+      return { success: false, error: '이미 제출한 미션입니다' };
+    }
+  }
 
   if (isTeamNaming) {
     if (!textContent?.trim()) {
@@ -48,6 +63,7 @@ export async function submitMission(
       return { success: false, error: '조 이름은 2~10자로 입력해주세요' };
     }
   } else {
+    // weekly, individual 모두 이미지 필수
     if (!imageUrl) {
       return { success: false, error: '이미지를 선택해주세요' };
     }

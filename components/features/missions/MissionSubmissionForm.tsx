@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { uploadMissionImage } from '@/lib/storage/upload';
+import { uploadMissionImage, uploadIndividualMissionImage } from '@/lib/storage/upload';
 import { submitMission, updateSubmission } from '@/lib/actions/submissions';
 
 interface InitialValues {
@@ -16,7 +16,7 @@ interface MissionSubmissionFormProps {
   meetingId: string;
   teamId: string;
   userId: string;
-  missionType: 'weekly' | 'team_naming';
+  missionType: 'weekly' | 'team_naming' | 'individual';
   submissionId?: string;
   initialValues?: InitialValues;
   onSuccess?: () => void;
@@ -37,6 +37,7 @@ export default function MissionSubmissionForm({
   endDate,
 }: MissionSubmissionFormProps) {
   const isTeamNaming = missionType === 'team_naming';
+  const isIndividual = missionType === 'individual';
   const isUpdateMode = !!submissionId;
 
   // 일반 미션용 state
@@ -104,7 +105,9 @@ export default function MissionSubmissionForm({
       let imageUrl: string | null = null;
 
       if (file) {
-        const uploadResult = await uploadMissionImage(file, meetingId, missionId, teamId);
+        const uploadResult = isIndividual
+          ? await uploadIndividualMissionImage(file, meetingId, missionId, teamId, userId)
+          : await uploadMissionImage(file, meetingId, missionId, teamId);
         if (!uploadResult.success || !uploadResult.url) {
           setError(uploadResult.error ?? '업로드 실패');
           setLoading(false);
