@@ -45,7 +45,7 @@ const STATUS_LABEL: Record<string, string> = {
   rejected: '거절',
 };
 
-/** 멤버 수 기반 포인트 선택지 생성 */
+/** 멤버 수 기반 포인트 선택지 생성. value=-1은 "기타" 센티넬 */
 function getPointOptions(memberCount: number): { label: string; value: number }[] {
   if (memberCount < 2) return [];
   const options = [{ label: `전체 (10pt)`, value: 10 }];
@@ -55,6 +55,7 @@ function getPointOptions(memberCount: number): { label: string; value: number }[
   if (memberCount >= 4) {
     options.push({ label: `-2명 (7pt)`, value: 7 });
   }
+  options.push({ label: `기타 (1~5pt)`, value: -1 });
   return options;
 }
 
@@ -67,6 +68,7 @@ export function SubmissionReviewCard({
   const [loading, setLoading] = useState(false);
   const pointOptions = getPointOptions(submission.member_count);
   const [selectedPoints, setSelectedPoints] = useState(pointOptions[0]?.value ?? 10);
+  const [etcPoints, setEtcPoints] = useState(1);
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectReason, setRejectReason] = useState<string>('인원 부족');
   const [rejectCustom, setRejectCustom] = useState('');
@@ -88,7 +90,7 @@ export function SubmissionReviewCard({
       missionId,
       reviewerId,
       action,
-      action === 'approve' ? (isTeamNaming ? 10 : selectedPoints) : undefined,
+      action === 'approve' ? (isTeamNaming ? 10 : selectedPoints === -1 ? etcPoints : selectedPoints) : undefined,
       reason
     );
     setLoading(false);
@@ -181,17 +183,37 @@ export function SubmissionReviewCard({
                   멤버 2명 이상이어야 승인 가능합니다 (현재 {submission.member_count}명)
                 </p>
               ) : (
-                <select
-                  value={selectedPoints}
-                  onChange={(e) => setSelectedPoints(Number(e.target.value))}
-                  className="input-brutal text-sm py-1.5"
-                >
-                  {pointOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                <>
+                  <select
+                    value={selectedPoints}
+                    onChange={(e) => setSelectedPoints(Number(e.target.value))}
+                    className="input-brutal text-sm py-1.5"
+                  >
+                    {pointOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedPoints === -1 && (
+                    <div className="flex gap-1.5 ml-1">
+                      {[1, 2, 3, 4, 5].map((pt) => (
+                        <button
+                          key={pt}
+                          type="button"
+                          onClick={() => setEtcPoints(pt)}
+                          className={`px-3 py-1.5 text-xs font-bold border-2 border-foreground transition-all duration-100 ${
+                            etcPoints === pt
+                              ? 'bg-foreground text-background'
+                              : 'bg-background text-foreground hover:translate-x-[-1px] hover:translate-y-[-1px] hover:[box-shadow:2px_2px_0_var(--foreground)]'
+                          }`}
+                        >
+                          {pt}pt
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
