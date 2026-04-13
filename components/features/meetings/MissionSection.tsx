@@ -94,6 +94,11 @@ function MissionItem({ mission, meetingId }: MissionItemProps) {
                   조 이름
                 </span>
               )}
+              {mission.mission_type === 'individual' && (
+                <span className="text-xs font-bold border border-border px-1.5 py-0.5 bg-muted shrink-0">
+                  개인
+                </span>
+              )}
             </div>
             <p className="text-muted-foreground text-sm mt-1 line-clamp-1">
               {mission.description}
@@ -101,7 +106,11 @@ function MissionItem({ mission, meetingId }: MissionItemProps) {
           </div>
           <div className="flex flex-col items-end gap-1 shrink-0">
             <span className="font-mono font-bold whitespace-nowrap">
-              {mission.mission_type === 'team_naming' ? '10pt' : '7~10pt'}
+              {mission.mission_type === 'team_naming'
+                ? '10pt'
+                : mission.mission_type === 'individual'
+                  ? `${mission.points}pt/인`
+                  : '7~10pt'}
             </span>
             {submissionStatus && (
               <span className={`px-2 py-0.5 text-xs font-bold border ${submissionStatus.className}`}>

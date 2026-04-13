@@ -17,7 +17,7 @@ interface SubmissionStatusProps {
   meetingId: string;
   teamId: string;
   userId: string;
-  missionType: 'weekly' | 'team_naming';
+  missionType: 'weekly' | 'team_naming' | 'individual';
   missionActive: boolean;
   missionStartDate?: string;
   missionEndDate?: string;

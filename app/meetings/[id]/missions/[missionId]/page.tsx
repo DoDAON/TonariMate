@@ -3,8 +3,9 @@ import { createClient } from '@/lib/supabase/server';
 import { ROUTES } from '@/lib/constants/routes';
 import { Header } from '@/components/layouts/Header';
 import { HeaderActions } from '@/components/layouts/HeaderActions';
-import { getMissionDetail, getTeamSubmission } from '@/lib/queries/missions';
+import { getMissionDetail, getTeamSubmission, getMyIndividualSubmission, getTeamIndividualSubmissions } from '@/lib/queries/missions';
 import { getUserTeamInMeeting } from '@/lib/queries/teams';
+import { SUBMISSION_STATUS_MAP } from '@/lib/constants/missions';
 import MissionSubmissionForm from '@/components/features/missions/MissionSubmissionForm';
 import SubmissionStatus from '@/components/features/missions/SubmissionStatus';
 import Link from 'next/link';
@@ -68,7 +69,19 @@ export default async function MissionPage({ params }: MissionPageProps) {
   const meetingEnded = !meetingResult.data?.is_active;
 
   const team = await getUserTeamInMeeting(meetingId, user.id);
-  const submission = team ? await getTeamSubmission(missionId, team.id) : null;
+
+  const isIndividualMission = mission.mission_type === 'individual';
+
+  const [submission, teamIndividualSubmissions] = await Promise.all([
+    team
+      ? isIndividualMission
+        ? getMyIndividualSubmission(missionId, team.id, user.id)
+        : getTeamSubmission(missionId, team.id)
+      : Promise.resolve(null),
+    team && isIndividualMission
+      ? getTeamIndividualSubmissions(missionId, team.id)
+      : Promise.resolve([]),
+  ]);
 
   const statusConfig = STATUS_CONFIG[mission.status];
   const remainingDays = mission.status === 'active' ? getRemainingDays(mission.end_date) : null;
@@ -100,9 +113,18 @@ export default async function MissionPage({ params }: MissionPageProps) {
                   조 이름 정하기
                 </span>
               )}
+              {mission.mission_type === 'individual' && (
+                <span className="px-2 py-1 text-xs font-bold border-2 border-border bg-muted">
+                  개인 미션
+                </span>
+              )}
             </div>
             <span className="font-mono font-bold">
-              {mission.mission_type === 'team_naming' ? '10pt' : `${mission.points}pt`}
+              {mission.mission_type === 'individual'
+                ? `${mission.points}pt / 인`
+                : mission.mission_type === 'team_naming'
+                  ? '10pt'
+                  : `${mission.points}pt`}
             </span>
           </div>
 
@@ -148,7 +170,7 @@ export default async function MissionPage({ params }: MissionPageProps) {
         {/* 미션 제출 섹션 */}
         <section className="mt-6 card-brutal">
           <h2 className="text-lg font-black tracking-tight uppercase mb-4">
-            미션 제출
+            {isIndividualMission ? '내 제출' : '미션 제출'}
           </h2>
 
           {submission ? (
@@ -194,6 +216,42 @@ export default async function MissionPage({ params }: MissionPageProps) {
             </p>
           )}
         </section>
+
+        {/* 개인 미션: 팀원 제출 현황 */}
+        {isIndividualMission && team && teamIndividualSubmissions.length > 0 && (
+          <section className="mt-6 card-brutal">
+            <h2 className="text-lg font-black tracking-tight uppercase mb-4">
+              팀원 제출 현황{' '}
+              <span className="font-mono text-base font-normal text-muted-foreground">
+                ({teamIndividualSubmissions.filter((m) => m.submission).length}/{teamIndividualSubmissions.length}명 제출)
+              </span>
+            </h2>
+            <div className="space-y-2">
+              {teamIndividualSubmissions.map((member) => {
+                const statusInfo = member.submission
+                  ? SUBMISSION_STATUS_MAP[member.submission.status]
+                  : null;
+                return (
+                  <div key={member.userId} className="flex items-center justify-between py-2 border-b-2 border-border last:border-b-0">
+                    <span className="text-sm font-bold">
+                      {member.userName}
+                      {member.userId === user.id && (
+                        <span className="ml-1.5 text-xs text-muted-foreground font-normal">(나)</span>
+                      )}
+                    </span>
+                    {statusInfo ? (
+                      <span className={`px-2 py-0.5 text-xs font-bold border-2 ${statusInfo.className}`}>
+                        {statusInfo.label}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">미제출</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );
