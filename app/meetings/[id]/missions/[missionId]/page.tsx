@@ -226,25 +226,58 @@ export default async function MissionPage({ params }: MissionPageProps) {
                 ({teamIndividualSubmissions.filter((m) => m.submission).length}/{teamIndividualSubmissions.length}명 제출)
               </span>
             </h2>
-            <div className="space-y-2">
+            <div className="space-y-4">
               {teamIndividualSubmissions.map((member) => {
-                const statusInfo = member.submission
-                  ? SUBMISSION_STATUS_MAP[member.submission.status]
-                  : null;
+                const s = member.submission;
+                const statusInfo = s ? SUBMISSION_STATUS_MAP[s.status] : null;
                 return (
-                  <div key={member.userId} className="flex items-center justify-between py-2 border-b-2 border-border last:border-b-0">
-                    <span className="text-sm font-bold">
-                      {member.userName}
-                      {member.userId === user.id && (
-                        <span className="ml-1.5 text-xs text-muted-foreground font-normal">(나)</span>
-                      )}
-                    </span>
-                    {statusInfo ? (
-                      <span className={`px-2 py-0.5 text-xs font-bold border-2 ${statusInfo.className}`}>
-                        {statusInfo.label}
+                  <div key={member.userId} className="border-2 border-border p-3 space-y-2">
+                    {/* 이름 + 상태 */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold">
+                        {member.userName}
+                        {member.userId === user.id && (
+                          <span className="ml-1.5 text-xs text-muted-foreground font-normal">(나)</span>
+                        )}
                       </span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">미제출</span>
+                      {statusInfo ? (
+                        <span className={`px-2 py-0.5 text-xs font-bold border-2 ${statusInfo.className}`}>
+                          {statusInfo.label}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">미제출</span>
+                      )}
+                    </div>
+
+                    {/* 제출물 내용 */}
+                    {s && (
+                      <>
+                        {s.image_url && (
+                          <div className="border-2 border-border p-1">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={s.image_url}
+                              alt={`${member.userName} 제출 이미지`}
+                              className="w-full max-h-48 object-contain"
+                            />
+                          </div>
+                        )}
+                        {s.completed_at && (
+                          <p className="text-xs text-muted-foreground">
+                            수행일:{' '}
+                            {new Date(s.completed_at).toLocaleDateString('ko-KR', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })}
+                          </p>
+                        )}
+                        {s.note && (
+                          <p className="text-sm border-l-2 border-border pl-3 text-muted-foreground">
+                            {s.note}
+                          </p>
+                        )}
+                      </>
                     )}
                   </div>
                 );

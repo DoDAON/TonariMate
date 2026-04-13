@@ -121,14 +121,14 @@ function IndividualSubmissionRow({
 
       {/* 이미지 */}
       {submission.imageUrl && (
-        <div className="relative w-full aspect-video border-2 border-border overflow-hidden bg-muted">
+        <div className="relative w-48 aspect-video border-2 border-border overflow-hidden bg-muted">
           <ImageWithLightbox
             src={submission.imageUrl}
             alt={`${submission.submittedByName ?? ''} 제출물`}
             fill
             className="object-cover"
             containerClassName="relative w-full h-full"
-            sizes="(max-width: 768px) 100vw, 50vw"
+            sizes="144px"
           />
         </div>
       )}
