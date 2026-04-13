@@ -145,11 +145,6 @@ export function MissionForm({ meetingId, mode, missionId, defaultValues, isExpir
             <input type="hidden" name="title" value="조 이름 정하기" />
             <div className="input-brutal w-full bg-muted text-muted-foreground">조 이름 정하기</div>
           </>
-        ) : isIndividual ? (
-          <>
-            <input type="hidden" name="title" value="개인 미션" />
-            <div className="input-brutal w-full bg-muted text-muted-foreground">개인 미션</div>
-          </>
         ) : (
           <input
             id="title"
